@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Noah's Testing Realm</title>
+
+    <!-- Cross Browser WebRTC Adapter -->
+    <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+
+    <!-- Include the SignalWire Relay JS SDK -->
+    <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
+    <!-- <script type="text/javascript" src="index.min.js"></script> -->
+
+    <!-- To style up the demo a little -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<!-- Main Content -->
+<body class="bg-light">
+<div class="container">
+    <div class="row pt-5">
+        <div class="col-12 pb-3">
+            <h1>SignalWire Relay Call Test Harness</h1>
+            <p>
+                This harness allows you to make calls to other browsers, SIP Endpoints or Phone Numbers from your SignalWire project in your browser.
+                <br />
+                Visit <a href="https://docs.signalwire.com/topics/relay-sdk-js">Relay SDK for JavaScript Documentation</a> for more information and documentation.
+            </p>
+        </div>
+    </div>
+    <hr />
+    <div class="row py-3">
+        <div class="col-12 col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Connect</h5>
+                    <div class="form-group">
+                        <label for="project">Project</label>
+                        <input type="text" class="form-control" id="project" placeholder="Enter Project ID" onchange="saveInLocalStorage(event)">
+                        <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="token">Token</label>
+                        <input type="text" class="form-control" id="token" placeholder="Enter your JWT" onchange="saveInLocalStorage(event)">
+                        <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="/topics/relay-sdk-js#relay-sdk-for-javascript-using-the-sdk">Using the JavaScript SDK Documentation</a></small>
+                    </div>
+
+                    <div class="mt-3 text-muted">
+                        <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
+                        <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
+                        <small>Status: <span id='connectStatus'>Not Connected</span></small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5>Extras</h5>
+                    <div>
+                        <form id="verto_resource" action="/phone_handler" method="post">
+                            <label for="formGroupExampleInput" class="form-label">Verto Resource</label>
+                            <input type="text" class="form-control" id="verto_resource_box" name="verto_resource_box" autocomplete="off" placeholder="Enter your Verto resource name.">
+                            <input class="btn btn-primary form_button_1" type="submit" value="Submit" id="submit">
+                        </form>
+                        <button id="btn" class="btn btn-block btn-danger" onclick="refresh_token()">Refresh Token</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5>Call State</h5>
+                    <small>Status: <span id='callStatus'>None</span></small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-8 mt-4 mt-md-1">
+            <div class="row">
+                <div class="col-6">
+                    <h5>Local Video</h5>
+                    <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+                </div>
+                <div class="col-6">
+                    <h5>Remote Video</h5>
+                    <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="number">Call To:</label>
+                <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial" onchange="saveInLocalStorage(event)">
+                <label for="numberFrom">Call From:</label>
+                <input type="text" class="form-control" id="numberFrom" placeholder="Enter Source number to Call From" onchange="saveInLocalStorage(event)">
+            </div>
+            <input type="hidden" id="jwt_refresh" name="jwt_refresh" value="">
+
+            <div>Call Options:</div>
+            <div class="form-check">
+                <input type="checkbox" id="audio" value="1" onchange="saveInLocalStorage(event)">
+                <label class="form-check-label" for="audio">
+                    Include Audio
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="video" value="1" onchange="saveInLocalStorage(event)">
+                <label class="form-check-label" for="video">
+                    Include Video
+                </label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="stun" value="1" onchange="saveInLocalStorage(event)">
+                <label class="form-check-label" for="STUN">
+                    Enable STUN
+                </label>
+            </div>
+            <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
+            <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
+            <div class="form-group" id="dtmfKeys" hidden="false">
+                <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
+                <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
+                <button id="dtmf_3" class="btn btn-primary px-2 mt-4" onClick="dtmf()">3</button>
+                <button id="dtmf_4" class="btn btn-primary px-2 mt-4" onClick="dtmf()">4</button>
+                <button id="dtmf_5" class="btn btn-primary px-2 mt-4" onClick="dtmf()">5</button>
+                <button id="dtmf_6" class="btn btn-primary px-2 mt-4" onClick="dtmf()">6</button>
+                <button id="dtmf_7" class="btn btn-primary px-2 mt-4" onClick="dtmf()">7</button>
+                <button id="dtmf_8" class="btn btn-primary px-2 mt-4" onClick="dtmf()">8</button>
+                <button id="dtmf_9" class="btn btn-primary px-2 mt-4" onClick="dtmf()">9</button>
+                <button id="dtmf_0" class="btn btn-primary px-2 mt-4" onClick="dtmf()">0</button>
+                <button id="dtmf_hash" class="btn btn-primary px-2 mt-4" onClick="dtmf()">#</button>
+                <button id="dtmf_star" class="btn btn-primary px-2 mt-4" onClick="dtmf()">*</button>
+                <button id="dtmf_a" class="btn btn-primary px-2 mt-4" onClick="dtmf()">A</button>
+                <button id="dtmf_b" class="btn btn-primary px-2 mt-4" onClick="dtmf()">B</button>
+                <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
+                <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
+            </div>
+
+
+        </div>
+    </div>
+    <hr />
+    <div class="row pt-3 pb-5">
+        <div class="col-12">
+            <h4>Troubleshooting</h4>
+            <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
+        </div>
+    </div>
+</div>
+</body>
+
+    <script type="text/javascript">
+        var client;
+        var currentCall = null;
+
+        var project = localStorage.getItem('relay.example.project') || '';
+        var token = localStorage.getItem('relay.example.token') || '';
+        var number = localStorage.getItem('relay.example.number') || '';
+        var numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
+        var audio = localStorage.getItem('relay.example.audio') || '1';
+        var video = localStorage.getItem('relay.example.video') || '1';
+        var stun = localStorage.getItem('relay.example.stun') || '1';
+
+
+
+        const getCircularReplacer = () => {
+            const seen = new WeakSet();
+            return (key, value) => {
+                if (typeof value === "object" && value !== null) {
+                    if (seen.has(value)) {
+                        return;
+                    }
+                    seen.add(value);
+                }
+                return value;
+            };
+        };
+
+
+        /**
+         * On document ready auto-fill the input values from the localStorage.
+         */
+        ready(function() {
+            document.getElementById('project').value = project;
+            document.getElementById('token').value = token;
+            document.getElementById('number').value = number;
+            document.getElementById('numberFrom').value = numberFrom;
+            document.getElementById('audio').checked = audio === '1';
+            document.getElementById('video').checked = video === '1';
+            document.getElementById('stun').checked = video === '1';
+        });
+
+        /**
+         * Connect with Relay creating a client and attaching all the event handler.
+         */
+        function connect() {
+            client = new Relay({
+                project: document.getElementById('project').value,
+                token: document.getElementById('token').value
+            });
+
+            // client.autoRecoverCalls = false;
+            client.remoteElement = 'remoteVideo';
+            client.localElement = 'localVideo';
+            if (document.getElementById('stun').checked) {
+                client.iceServers = [{ urls: ['stun.signalwire.com'] }];
+            } else {
+                console.log("Stun is disabled")
+            }
+            if (document.getElementById('audio').checked) {
+                client.enableMicrophone()
+            } else {
+                client.disableMicrophone()
+            }
+            if (document.getElementById('video').checked) {
+                client.enableWebcam()
+            } else {
+                client.disableWebcam()
+            }
+
+            client.on('signalwire.ready', function() {
+                btnConnect.classList.add('d-none');
+                btnDisconnect.classList.remove('d-none');
+                connectStatus.innerHTML = 'Connected';
+
+                startCall.disabled = false;
+            });
+
+            // Update UI on socket close
+            client.on('signalwire.socket.close', function() {
+                btnConnect.classList.remove('d-none');
+                btnDisconnect.classList.add('d-none');
+                connectStatus.innerHTML = 'Disconnected';
+            });
+
+            // Handle error...
+            client.on('signalwire.error', function(error){
+                console.error("SignalWire error:", error);
+            });
+
+            client.on('signalwire.notification', handleNotification);
+
+            connectStatus.innerHTML = 'Connecting...';
+            client.connect();
+        }
+
+        function disconnect() {
+            connectStatus.innerHTML = 'Disconnecting...';
+            client.disconnect();
+        }
+
+        /**
+         * Handle notification from the client.
+         */
+        function handleNotification(notification) {
+            console.log("notification", notification.type, notification);
+            switch (notification.type) {
+                case 'callUpdate':
+                    handleCallUpdate(notification.call);
+                    break;
+                case 'userMediaError':
+                    // Permission denied or invalid audio/video params on `getUserMedia`
+                    break;
+            }
+        }
+
+        /**
+         * Update the UI when the call's state change
+         */
+        function handleCallUpdate(call) {
+            currentCall = call;
+            let ccallState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
+            console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
+            console.log("Call State: " ,ccallState);
+            console.log(call.id)
+            let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
+            callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
+
+            switch (call.state) {
+                case 'new': // Setup the UI
+                    break;
+                case 'trying': // You are trying to call someone and he's ringing now
+                    startCall.classList.add('d-none');
+                    hangupCall.classList.remove('d-none');
+                    hangupCall.disabled = false;
+                    dtmfKeys.hidden=false;
+                    break;
+                case 'recovering': // Call is recovering from a previous session
+                    if (confirm('Recover the previous call?')) {
+                        currentCall.answer();
+                        console.log(currentCall.id)
+                    } else {
+                        currentCall.hangup();
+                    }
+                    break;
+                case 'ringing': // Someone is calling you
+                    if (confirm('Pick up the call?')) {
+                        currentCall.answer();
+                    } else {
+                        currentCall.hangup();
+                    }
+                    break;
+                case 'active': // Call has become active
+                    startCall.classList.add('d-none');
+                    hangupCall.classList.remove('d-none');
+                    hangupCall.disabled = false;
+                    dtmfKeys.hidden=false;
+                    break;
+                case 'hangup': // Call is over
+                    startCall.classList.remove('d-none');
+                    hangupCall.classList.add('d-none');
+                    hangupCall.disabled = true;
+                    dtmfKeys.hidden=true;
+                    break;
+                case 'destroy': // Call has been destroyed
+                    currentCall = null;
+                    break;
+            }
+        }
+
+        /**
+         * Make a new outbound call
+         */
+        function makeCall() {
+            const params = {
+                destinationNumber: document.getElementById('number').value, // required!
+                callerNumber: document.getElementById('numberFrom').value, // required!
+                audio: document.getElementById('audio').checked,
+                video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+            };
+
+            currentCall = client.newCall(params);
+        }
+
+        /**
+         * Send a DTMF to currentCall if present
+         */
+        function dtmf() {
+            if (currentCall) {
+                let dtmfkey = event.srcElement.id;
+                console.log(dtmfkey);
+                switch (dtmfkey) {
+                    case 'dtmf_0':
+                        currentCall.dtmf('0');
+                        break;
+                    case 'dtmf_1':
+                        currentCall.dtmf('1');
+                        break;
+                    case 'dtmf_2':
+                        currentCall.dtmf('2');
+                        break;
+                    case 'dtmf_3':
+                        currentCall.dtmf('3');
+                        break;
+                    case 'dtmf_4':
+                        currentCall.dtmf('4');
+                        break;
+                    case 'dtmf_5':
+                        currentCall.dtmf('5');
+                        break;
+                    case 'dtmf_6':
+                        currentCall.dtmf('6');
+                        break;
+                    case 'dtmf_7':
+                        currentCall.dtmf('7');
+                        break;
+                    case 'dtmf_8':
+                        currentCall.dtmf('8');
+                        break;
+                    case 'dtmf_9':
+                        currentCall.dtmf('9');
+                        break;
+                    case 'dtmf_hash':
+                        currentCall.dtmf('#');
+                        break;
+                    case 'dtmf_star':
+                        currentCall.dtmf('*');
+                        break;
+                    case 'dtmf_a':
+                        currentCall.dtmf('a');
+                        break;
+                    case 'dtmf_b':
+                        currentCall.dtmf('b');
+                        break;
+                    case 'dtmf_c':
+                        currentCall.dtmf('c');
+                        break;
+                    case 'dtmf_d':
+                        currentCall.dtmf('d');
+                        break;
+                    default:
+                        console.log("unknown dtmf");
+                }
+            }
+        }
+
+        /**
+         * Hangup the currentCall if present
+         */
+        function hangup() {
+            if (currentCall) {
+                currentCall.hangup()
+            }
+        }
+
+        function saveInLocalStorage(e) {
+            var key = e.target.name || e.target.id
+            localStorage.setItem('relay.example.' + key, e.target.value);
+        }
+        function ready(callback) {
+            if (document.readyState != 'loading') {
+                callback();
+            } else if (document.addEventListener) {
+                document.addEventListener('DOMContentLoaded', callback);
+            } else {
+                document.attachEvent('onreadystatechange', function() {
+                    if (document.readyState != 'loading') {
+                        callback();
+                    }
+                });
+            }
+        }
+    </script>
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+<script>
+    function refresh_token() {
+        disconnect()
+
+        $.ajax({
+            url: "/jwt_refresh",
+            method: "POST",
+            data: { refresh_token: document.getElementById('jwt_refresh').value },
+            success: function(data) {
+                $('#token').val(data.jwt_token);
+                $('#jwt_refresh').val(data.refresh_token);
+                connect()
+            }
+        });
+    }
+
+    $(document).ready(function(){
+        $("#verto_resource").on('submit', function(event) {
+            event.preventDefault(); // Prevent the form from submitting via the browser
+            let formValues= $(this).serialize();
+
+            $.ajax({
+                url: "/phone_handler",
+                method: "POST",
+                data: formValues,
+                success: function(data) {
+                    $('#token').val(data.jwt_token);
+                    $('#jwt_refresh').val(data.refresh_token);
+                    // Connect after the request is done.
+                    connect()
+                }
+            });
+        });
+    });
+
+</script>
+
+<script>
+
+</script>
+</html>

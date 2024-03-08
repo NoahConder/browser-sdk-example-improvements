@@ -1,1 +1,16 @@
-# browser-sdk-example-improvements
+Browser SDK Example Improved
+---------
+Included is a .env that will need the credentials below.
+```dotenv
+SIGNALWIRE_API=SIGNALWIRE API TOKEN GOES HERE
+SIGNALWIRE_PROJECT=SIGNALWIRE PROJECT ID GOES HERE
+SIGNALWIRE_SPACE=your-space.signalwire.com
+```
+List of additions:
+
+-----------
+
+- JWT generator built within the application for ease of access.
+- Refresh JWT button.
+- STUN server On/Off switch.
+- Updated Bootstrap and layout slightly.

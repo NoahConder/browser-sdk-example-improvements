@@ -1,6 +1,6 @@
 Browser SDK Example Improved
 ---------
-Included is a .env that will need the credentials below.
+Included is a .ENV that will need the credentials below.
 ```dotenv
 SIGNALWIRE_API=SIGNALWIRE API TOKEN GOES HERE
 SIGNALWIRE_PROJECT=SIGNALWIRE PROJECT ID GOES HERE
@@ -14,3 +14,4 @@ List of additions:
 - Refresh JWT button.
 - STUN server On/Off switch.
 - Updated Bootstrap and layout slightly.
+- Fixed DTMF keys being broken. These now display properly and hide when a call is not made.

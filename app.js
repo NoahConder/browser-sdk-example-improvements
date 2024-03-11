@@ -1,7 +1,7 @@
-//Imports
+// Imports
 const express = require('express');
 const path = require('path');
-const phoneHandler = require('./public/handlers/phone_handler');
+const tokenHandler = require('./public/handlers/token_handler');
 const verto = require('./public/routes/verto_call');
 
 
@@ -18,7 +18,7 @@ function configureExpress() {
 
 function installRoutes() {
     app.use('/', verto);
-    app.use('/', phoneHandler);
+    app.use('/', tokenHandler);
 }
 
 function startServer() {

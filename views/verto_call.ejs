@@ -24,6 +24,9 @@
         body {
             font-family: 'Roboto', sans-serif;
         }
+        #dtmfKeys {
+            display: none
+        }
     </style>
 </head>
 <!-- Main Content -->
@@ -89,11 +92,11 @@
             <div class="row">
                 <div class="col-6">
                     <h5>Local Video</h5>
-                    <video id="localVideo" autoplay="true" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+                    <video id="localVideo" autoplay="autoplay" class="w-100" style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
                 </div>
                 <div class="col-6">
                     <h5>Remote Video</h5>
-                    <video id="remoteVideo" autoplay="true" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
+                    <video id="remoteVideo" autoplay="autoplay" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
                 </div>
             </div>
 
@@ -126,7 +129,7 @@
             </div>
             <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="true">Call</button>
             <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="true">Hang up</button>
-            <div class="form-group" id="dtmfKeys" hidden="false">
+            <div class="form-group" id="dtmfKeys">
                 <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
                 <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
                 <button id="dtmf_3" class="btn btn-primary px-2 mt-4" onClick="dtmf()">3</button>
@@ -337,7 +340,7 @@
                 audio: document.getElementById('audio').checked,
                 video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
             };
-
+            dtmf_viewer()
             currentCall = client.newCall(params);
         }
 
@@ -456,6 +459,15 @@
         await new Promise(r => setTimeout(r, 750));
         connect()
     }
+    async function dtmf_viewer() {
+        await new Promise(r => setTimeout(r, 750));
+        // This fixes the DTMF keys always being hidden. The sleep is to ensure the call is made before checking.
+        // This also retains what I believe in to be original intention of only displaying this once a call is made.
+        let x = document.getElementById("dtmfKeys");
+        if (currentCall) {
+            x.style.display = "block"
+        } else {}
+    }
 
     $(document).ready(function(){
         $("#verto_resource").on('submit', function(event) {
@@ -463,7 +475,7 @@
             let formValues= $(this).serialize();
 
             $.ajax({
-                url: "/phone_handler",
+                url: "/token_handler",
                 method: "POST",
                 data: formValues,
                 success: function(data) {

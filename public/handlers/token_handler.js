@@ -1,4 +1,4 @@
-/* ./handlers/phone_handler.js */
+/* ./handlers/token_handler.js */
 const express = require('express');
 require('dotenv').config()
 const router = express.Router();
@@ -9,7 +9,7 @@ const project = process.env.SIGNALWIRE_PROJECT
 
 const combined = `${project}:${api_key}`;
 const base64Result = Buffer.from(combined).toString('base64');
-router.post("/phone_handler", function (req, res) {
+router.post("/token_handler", function (req, res) {
 
     const resource = req.body.verto_resource_box; // Get the user's resource name for their verto endpoint.
 

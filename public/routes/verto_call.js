@@ -1,4 +1,4 @@
-/* ./routes/sip_call.js */
+/* ./routes/verto_call.js */
 const express = require('express');
 const router = express.Router();
 

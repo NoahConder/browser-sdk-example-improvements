@@ -462,7 +462,7 @@
         await new Promise(r => setTimeout(r, 750));
         $.ajax({
             url: "/jwt_refresh",
-            method: "POST",
+            method: "PUT",
             data: { refresh_token: document.getElementById('jwt_refresh').value },
             success: function(data) {
                 $('#token').val(data.jwt_token);

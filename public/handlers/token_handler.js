@@ -37,31 +37,28 @@ router.post("/token_handler", function (req, res) {
         });
 });
 
-router.post("/jwt_refresh", function (req, res) {
-
-    const jwt_refresh = req.body.jwt_refresh; // Refresh token that we pull from the client. This is put into the client once they request a JWT.
-
+router.put("/jwt_refresh", function (req, res) {
+    const jwt_refresh = req.body.refresh_token;
     axios({
-        method: 'post',
+        method: 'put',
         url: `https://${space}/api/relay/rest/jwt`,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${base64Result}`
         },
         data: {
-            refresh_token: `${jwt_refresh}`
+            refresh_token: jwt_refresh
         }
     })
         .then(response => {
             console.log("Refresh successfully generated.");
             const data = response.data;
-            res.json({jwt_token: data.jwt_token, refresh_token: data.refresh_token}); // Send the tokens to the client.
-
-
+            res.json({jwt_token: data.jwt_token, refresh_token: data.refresh_token});
         })
         .catch(error => {
             console.error(error);
         });
 });
+
 
 module.exports = router;

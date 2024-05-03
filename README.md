@@ -16,4 +16,3 @@ List of additions:
 - Updated Bootstrap and layout slightly.
 - Fixed DTMF keys being broken. These now display properly and hide when a call is not made.
 - Removed deprecated event gathering and methods.
-- Updated the SDK to be the latest version.

@@ -21,4 +21,6 @@ Instructions:
 -----------
 1. run `npm install`
 2. run `node app.js`
-3. Click the URL that generates to your local host in your terminal.
+3. Click/go to the URL that is generated within your terminal.
+4. Once at the site, enter your project ID and a Verto resource name under the extras tab.
+5. You're all set to begin placing calls!

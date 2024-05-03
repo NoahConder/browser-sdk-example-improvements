@@ -16,3 +16,9 @@ List of additions:
 - Updated Bootstrap and layout slightly.
 - Fixed DTMF keys being broken. These now display properly and hide when a call is not made.
 - Removed deprecated event gathering and methods.
+  
+Instructions:
+-----------
+1. run `npm install`
+2. run `node app.js`
+3. Click the URL that generates to your local host in your terminal.

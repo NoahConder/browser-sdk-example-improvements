@@ -20,7 +20,8 @@ List of additions:
 Instructions:
 -----------
 1. run `npm install`
-2. run `node app.js`
-3. Click/go to the URL that is generated within your terminal.
-4. Once at the site, enter your project ID and a Verto resource name under the extras tab.
-5. You're all set to begin placing calls!
+2. Enter your credentials in the example `.env`
+3. run `node app.js`
+4. Click/go to the URL that is generated within your terminal.
+5. Once at the site, enter your project ID and a Verto resource name under the extras tab.
+6. You're all set to begin placing calls!

@@ -86,7 +86,7 @@
                             </div>
                         </form>
                     </div>
-                    <small id="tokenHelp" class="form-text text-muted">Enter in a project ID above and resource name and press submit to begin placing calls.</small>
+                    <small id="tokenHelp" class="form-text text-muted">Enter a project ID above and resource name. Once ready, press submit to begin placing calls.</small>
                 </div>
             </div>
             <div class="card">
@@ -546,6 +546,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 <script>
+    // Handles the token refreshing.
     async function refresh_token() {
         disconnect()
         await new Promise(r => setTimeout(r, 750));
@@ -560,21 +561,23 @@
             }
         });
     }
+    // Handles switching STUN on/off.
     async function stun_swap() {
         disconnect()
         await new Promise(r => setTimeout(r, 750));
         connect()
     }
+    // Handles DTMF. Turns on when a call is made and off when not.
     async function dtmf_viewer() {
         await new Promise(r => setTimeout(r, 750));
         // This fixes the DTMF keys always being hidden. The sleep is to ensure the call is made before checking.
-        // This also retains what I believe in to be original intention of only displaying this once a call is made.
+        // It also retains the DTMF keys only displaying once a call is made.
         let x = document.getElementById("dtmfKeys");
         if (currentCall) {
             x.style.display = "block"
         } else {}
     }
-
+    // Connects the client once a verto resource name is submitted.
     $(document).ready(function(){
         $("#verto_resource").on('submit', function(event) {
             event.preventDefault(); // Prevent the form from submitting via the browser
@@ -593,7 +596,7 @@
             });
         });
     });
-
+    // Hides the JWT duration box if the user doesn't want to customize it.
     $(document).ready(function() {
         $('#jwt_duration-box').hide();
         $('#verto_duration_switch').change(function() {

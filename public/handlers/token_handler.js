@@ -12,11 +12,17 @@ const base64Result = Buffer.from(combined).toString('base64');
 router.post("/token_handler", function (req, res) {
 
     const resource = req.body.verto_resource_box; // Get the user's resource name for their verto endpoint.
+    const duration = req.body.jwt_duration;
 
+
+    let apiUrl = `https://${space}/api/relay/rest/jwt?resource=${resource}`;
+    if (duration !== undefined && duration !== null && duration !== '') {
+        apiUrl += `&expires_in=${duration}`;
+    }
 
     axios({
         method: 'post',
-        url: `https://${space}/api/relay/rest/jwt?resource=${resource}`,
+        url: apiUrl,
         headers: {
             'resource': `${resource}`,
             'Authorization': `Basic ${base64Result}`
@@ -27,7 +33,7 @@ router.post("/token_handler", function (req, res) {
     })
         .then(response => {
             console.log("Token successfully generated.");
-            const data = response.data;
+            const data = response.data
             res.json({jwt_token: data.jwt_token, refresh_token: data.refresh_token}); // Send the token and refresh token to the client.
 
 
@@ -39,9 +45,15 @@ router.post("/token_handler", function (req, res) {
 
 router.put("/jwt_refresh", function (req, res) {
     const jwt_refresh = req.body.refresh_token;
+    const duration = req.body.duration;
+
+    let apiUrl = `https://${space}/api/relay/rest/jwt`;
+    if (duration !== undefined && duration !== null && duration !== '') {
+        apiUrl += `?expires_in=${duration}`;
+    }
     axios({
         method: 'put',
-        url: `https://${space}/api/relay/rest/jwt`,
+        url: apiUrl,
         headers: {
             'Content-Type': 'application/json',
             'Authorization': `Basic ${base64Result}`

@@ -3,22 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>SignalWire Browser SDK Example</title>
-
     <!-- Cross Browser WebRTC Adapter -->
     <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-
     <!-- Include the SignalWire Relay JS SDK -->
     <script type="text/javascript" src="https://unpkg.com/@signalwire/js@^1"></script>
-
     <!-- To style up the demo a little -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
         body {
             font-family: 'Roboto', sans-serif;
         }
@@ -26,11 +20,8 @@
             display: none
         }
     </style>
-
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
-
-
 </head>
 <!-- Main Content -->
 <body class="bg-light">
@@ -59,9 +50,8 @@
                     <div class="form-group">
                         <label for="token">Token</label>
                         <input type="text" class="form-control" id="token" placeholder="Enter your JWT">
-                        <small id="tokenHelp" class="form-text text-muted">Generate a JWT and enter it here. For more information, visit <a href="https://docs.signalwire.com/reference/relay-sdk-js/v1/#relay-sdk-for-javascript">Using the JavaScript SDK Documentation</a></small>
+                        <small id="tokenHelp" class="form-text text-muted">Use the generator below to generate a JWT. For more information, visit <a href="https://docs.signalwire.com/reference/relay-sdk-js/v1/#relay-sdk-for-javascript">Using the JavaScript SDK Documentation</a></small>
                     </div>
-
                     <div class="mt-3 text-muted">
                         <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
                         <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
@@ -69,21 +59,34 @@
                     </div>
                 </div>
             </div>
-
             <div class="card">
                 <div class="card-body">
                     <h5>Extras</h5>
                     <div>
                         <label class="form-label">Codecs</label>
-                        <select id="codecs" class="form-select" multiple size="6">
-                        </select>
-                        <form id="verto_resource" action="/phone_handler" method="post">
+                        <select id="codecs" class="form-select" multiple size="6"></select>
+                        <form id="verto_resource"  method="post">
                             <label for="formGroupExampleInput" class="form-label">Verto Resource</label>
-                            <input type="text" class="form-control" id="verto_resource_box" name="verto_resource_box" autocomplete="off" placeholder="Enter your Verto resource name.">
-                            <input class="btn btn-primary form_button_1" type="submit" value="Submit" id="submit">
+                            <input type="text" class="form-control" id="verto_resource_box" name="verto_resource_box" autocomplete="off" placeholder="Resource name">
+                            </label>
+                            <div class="form-check form-switch mt-3">
+                                <input class="form-check-input" type="checkbox" id="verto_duration_switch">
+                                <label class="form-check-label" for="verto_duration_switch">Adjust the JWT's duration?</label>
+                            </div>
+                            <div class="input-group mt-3">
+                                <input type="text" class="form-control hidden" id="jwt_duration-box" name="jwt_duration" autocomplete="off" placeholder="Enter JWT duration in minutes">
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <input class="btn btn-primary w-100" type="submit" value="Submit" id="submit">
+                                </div>
+                                <div class="col-6">
+                                    <button id="btn" class="btn btn-block btn-danger w-100" onclick="refresh_token()">Refresh Token</button>
+                                </div>
+                            </div>
                         </form>
-                        <button id="btn" class="btn btn-block btn-danger" onclick="refresh_token()">Refresh Token</button>
                     </div>
+                    <small id="tokenHelp" class="form-text text-muted">Enter in a project ID above and resource name and press submit to begin placing calls.</small>
                 </div>
             </div>
             <div class="card">
@@ -93,7 +96,6 @@
                 </div>
             </div>
         </div>
-
         <div class="col-12 col-md-8 mt-4 mt-md-1">
             <div class="row">
                 <div class="col-6">
@@ -105,7 +107,6 @@
                     <video id="remoteVideo" autoplay="autoplay" class="w-100" playsinline style="background-color: #000; border: 1px solid #ccc; border-radius: 5px;"></video>
                 </div>
             </div>
-
             <div class="form-group">
                 <label for="number">Call To:</label>
                 <input type="text" class="form-control" id="number" placeholder="Enter Resource or Number to Dial">
@@ -113,7 +114,6 @@
                 <input type="text" class="form-control" id="numberFrom" placeholder="Enter Source number to Call From">
             </div>
             <input type="hidden" id="jwt_refresh" name="jwt_refresh" value="">
-
             <div>Call Options:</div>
             <div class="form-check">
                 <input type="checkbox" id="audio" value="1">
@@ -153,8 +153,6 @@
                 <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
                 <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
             </div>
-
-
         </div>
     </div>
     <hr />
@@ -166,392 +164,387 @@
     </div>
 </div>
 </body>
+<script type="text/javascript">
+    let client;
+    let currentCall = null;
 
-    <script type="text/javascript">
-        let client;
-        let currentCall = null;
+    ready(function() {
+        listAvailableCodecs();
+        patchRTCPeerCodecs();
+    });
 
-        ready(function() {
-            listAvailableCodecs();
-            patchRTCPeerCodecs();
-            connect();
+    function getWantedCodecs() {
+        const el = document.getElementById('codecs')
+        const codecs = Array.from(el.selectedOptions).map(({ value }) => value)
+        return {
+            audio: codecs,
+            video: ['video/VP8'],
+        }
+    }
+
+    function listAvailableCodecs() {
+        const { codecs: availSend } = RTCRtpSender.getCapabilities('audio');
+        console.log('Codecs', availSend);
+        availSend.forEach(row => {
+            const option = document.createElement('option');
+            option.value = row.mimeType;
+            option.text = row.mimeType;
+            option.selected = true;
+            document.getElementById('codecs').appendChild(option);
         });
+    }
 
-        function getWantedCodecs() {
-            const el = document.getElementById('codecs')
-            const codecs = Array.from(el.selectedOptions).map(({ value }) => value)
-            return {
-                audio: codecs,
-                video: ['video/VP8'],
-            }
-        }
+    function patchRTCPeerCodecs() {
 
-        function listAvailableCodecs() {
-            const { codecs: availSend } = RTCRtpSender.getCapabilities('audio');
-            console.log('codecs', availSend);
-            availSend.forEach(row => {
-                const option = document.createElement('option');
-                option.value = row.mimeType;
-                option.text = row.mimeType;
-                option.selected = true;
-                document.getElementById('codecs').appendChild(option);
-            });
-        }
+        const mediaTypes = ['audio', 'video']
 
-        function patchRTCPeerCodecs() {
+        const _createOffer = RTCPeerConnection.prototype.createOffer;
+        const _createAnswer = RTCPeerConnection.prototype.createAnswer;
 
-            const mediaTypes = ['audio', 'video']
+        function patch() {
+            const wantedCodecs = getWantedCodecs()
 
-            const _createOffer = RTCPeerConnection.prototype.createOffer;
-            const _createAnswer = RTCPeerConnection.prototype.createAnswer;
-
-            function patch() {
-                const wantedCodecs = getWantedCodecs()
-
-                mediaTypes.forEach(media => {
-                    const transceiver = this.getTransceivers().find(t => {
-                        if (t.sender.track) {
-                            return t.sender.track.kind === media
-                        } else {
-                            return false
-                        }
-
-                    })
-                    if (transceiver) {
-                        const { codecs: availSend } = RTCRtpSender.getCapabilities(media);
-                        const { codecs: availRecv } = RTCRtpReceiver.getCapabilities(media);
-                        const newCodecs = []
-                        availSend.forEach(row => {
-                            if (wantedCodecs[media].includes(row.mimeType)) {
-                                newCodecs.push(row)
-                            }
-                        })
-                        availRecv.forEach(row => {
-                            if (wantedCodecs[media].includes(row.mimeType)) {
-                                newCodecs.push(row)
-                            }
-                        })
-                        console.log('availSend', availSend)
-                        console.log('availRecv', availRecv)
-                        console.log('Applying this codecs', JSON.stringify(newCodecs), 'for', media)
-                        transceiver.setCodecPreferences(newCodecs)
+            mediaTypes.forEach(media => {
+                const transceiver = this.getTransceivers().find(t => {
+                    if (t.sender.track) {
+                        return t.sender.track.kind === media
                     } else {
-                        console.warn('No transceiver found for ', media)
+                        return false
                     }
+
                 })
-            }
-
-
-            RTCPeerConnection.prototype.createOffer = function(options) {
-                try {
-                    console.log('This offer', this)
-                    patch.apply(this)
-                } catch (error) {
-                    console.error('Error patching offer', error)
+                if (transceiver) {
+                    const { codecs: availSend } = RTCRtpSender.getCapabilities(media);
+                    const { codecs: availRecv } = RTCRtpReceiver.getCapabilities(media);
+                    const newCodecs = []
+                    availSend.forEach(row => {
+                        if (wantedCodecs[media].includes(row.mimeType)) {
+                            newCodecs.push(row)
+                        }
+                    })
+                    availRecv.forEach(row => {
+                        if (wantedCodecs[media].includes(row.mimeType)) {
+                            newCodecs.push(row)
+                        }
+                    })
+                    console.log('availSend', availSend)
+                    console.log('availRecv', availRecv)
+                    console.log('Applying the following codec(s)', JSON.stringify(newCodecs), 'for', media)
+                    transceiver.setCodecPreferences(newCodecs)
+                } else {
+                    console.warn('No transceiver found for ', media)
                 }
-
-                return _createOffer.apply(this, options);
-            }
-
-            RTCPeerConnection.prototype.createAnswer = function(options) {
-                try {
-                    patch.apply(this)
-                } catch (error) {
-                    console.error('Error patching answer', error)
-                }
-
-                return _createAnswer.apply(this, options);
-            };
+            })
         }
 
-        let project = localStorage.getItem('relay.example.project') || '';
-        let token = localStorage.getItem('relay.example.token') || '';
-        let number = localStorage.getItem('relay.example.number') || '';
-        let numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
-        let audio = localStorage.getItem('relay.example.audio') || '1';
-        let video = localStorage.getItem('relay.example.video') || '1';
-        let stun = localStorage.getItem('relay.example.stun') || '1';
 
-        // Handles all the events for each input field.
-        let inputFields = document.querySelectorAll('.card-body .form-control');
-        inputFields.forEach(function(inputField) {
-            inputField.addEventListener('change', function(event) {
-                saveInLocalStorage(event);
-            });
-        });
-        // Same as the above, just for the checkboxes.
-        let checkboxes = document.querySelectorAll('.form-check input');
-        checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', function(event) {
-                saveInLocalStorage(event);
-            });
-        });
+        RTCPeerConnection.prototype.createOffer = function(options) {
+            try {
+                console.log('This offer', this)
+                patch.apply(this)
+            } catch (error) {
+                console.error('Error patching offer', error)
+            }
 
+            return _createOffer.apply(this, options);
+        }
 
+        RTCPeerConnection.prototype.createAnswer = function(options) {
+            try {
+                patch.apply(this)
+            } catch (error) {
+                console.error('Error patching answer', error)
+            }
 
-        const getCircularReplacer = () => {
-            const seen = new WeakSet();
-            return (key, value) => {
-                if (typeof value === "object" && value !== null) {
-                    if (seen.has(value)) {
-                        return;
-                    }
-                    seen.add(value);
-                }
-                return value;
-            };
+            return _createAnswer.apply(this, options);
         };
+    }
+
+    let project = localStorage.getItem('relay.example.project') || '';
+    let token = localStorage.getItem('relay.example.token') || '';
+    let number = localStorage.getItem('relay.example.number') || '';
+    let numberFrom = localStorage.getItem('relay.example.numberFrom') || '';
+    let audio = localStorage.getItem('relay.example.audio') || '1';
+    let video = localStorage.getItem('relay.example.video') || '1';
+    let stun = localStorage.getItem('relay.example.stun') || '1';
+
+    // Handles all the events for each input field.
+    let inputFields = document.querySelectorAll('.card-body .form-control');
+    inputFields.forEach(function(inputField) {
+        inputField.addEventListener('change', function(event) {
+            saveInLocalStorage(event);
+        });
+    });
+    // Same as the above, just for the checkboxes.
+    let checkboxes = document.querySelectorAll('.form-check input');
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function(event) {
+            saveInLocalStorage(event);
+        });
+    });
 
 
-        /**
-         * On document ready autofill the input values from the localStorage.
-         */
-        ready(function() {
-            document.getElementById('project').value = project;
-            document.getElementById('token').value = token;
-            document.getElementById('number').value = number;
-            document.getElementById('numberFrom').value = numberFrom;
-            document.getElementById('audio').checked = audio === '1';
-            document.getElementById('video').checked = video === '1';
-            document.getElementById('stun').checked = video === '1';
+
+    const getCircularReplacer = () => {
+        const seen = new WeakSet();
+        return (key, value) => {
+            if (typeof value === "object" && value !== null) {
+                if (seen.has(value)) {
+                    return;
+                }
+                seen.add(value);
+            }
+            return value;
+        };
+    };
+
+
+    /**
+     * On document ready autofill the input values from the localStorage.
+     */
+    ready(function() {
+        document.getElementById('project').value = project;
+        document.getElementById('token').value = token;
+        document.getElementById('number').value = number;
+        document.getElementById('numberFrom').value = numberFrom;
+        document.getElementById('audio').checked = audio === '1';
+        document.getElementById('video').checked = video === '1';
+        document.getElementById('stun').checked = video === '1';
+    });
+
+    /**
+     * Connect with Relay creating a client and attaching all the event handler.
+     */
+    function connect() {
+        client = new Relay({
+            project: document.getElementById('project').value,
+            token: document.getElementById('token').value
         });
 
-        /**
-         * Connect with Relay creating a client and attaching all the event handler.
-         */
-        function connect() {
-            client = new Relay({
-                project: document.getElementById('project').value,
-                token: document.getElementById('token').value
-            });
-
-            // client.autoRecoverCalls = false;
-            client.remoteElement = 'remoteVideo';
-            client.localElement = 'localVideo';
-            if (document.getElementById('stun').checked) {
-                client.iceServers = [{ urls: ['stun:stun.signalwire.com'] }];
-                console.log("STUN is enabled")
-            } else {
-                console.log("STUN is disabled")
-            }
-            if (document.getElementById('audio').checked) {
-                client.enableMicrophone()
-            } else {
-                client.disableMicrophone()
-            }
-            if (document.getElementById('video').checked) {
-                client.enableWebcam()
-            } else {
-                client.disableWebcam()
-            }
-
-            client.on('signalwire.ready', function() {
-                btnConnect.classList.add('d-none');
-                btnDisconnect.classList.remove('d-none');
-                connectStatus.innerHTML = 'Connected';
-
-                startCall.disabled = false;
-            });
-
-            // Update UI on socket close
-            client.on('signalwire.socket.close', function() {
-                btnConnect.classList.remove('d-none');
-                btnDisconnect.classList.add('d-none');
-                connectStatus.innerHTML = 'Disconnected';
-            });
-
-            // Handle error...
-            client.on('signalwire.error', function(error){
-                console.error("SignalWire error:", error);
-            });
-
-            client.on('signalwire.notification', handleNotification);
-
-            connectStatus.innerHTML = 'Connecting...';
-            client.connect();
+        // client.autoRecoverCalls = false;
+        client.remoteElement = 'remoteVideo';
+        client.localElement = 'localVideo';
+        if (document.getElementById('stun').checked) {
+            client.iceServers = [{ urls: ['stun:stun.signalwire.com'] }];
+            console.log("STUN is enabled")
+        } else {
+            console.log("STUN is disabled")
+        }
+        if (document.getElementById('audio').checked) {
+            client.enableMicrophone()
+        } else {
+            client.disableMicrophone()
+        }
+        if (document.getElementById('video').checked) {
+            client.enableWebcam()
+        } else {
+            client.disableWebcam()
         }
 
-        function disconnect() {
-            connectStatus.innerHTML = 'Disconnecting...';
-            client.disconnect();
+        client.on('signalwire.ready', function() {
+            btnConnect.classList.add('d-none');
+            btnDisconnect.classList.remove('d-none');
+            connectStatus.innerHTML = 'Connected';
+
+            startCall.disabled = false;
+        });
+
+        // Update UI on socket close
+        client.on('signalwire.socket.close', function() {
+            btnConnect.classList.remove('d-none');
+            btnDisconnect.classList.add('d-none');
+            connectStatus.innerHTML = 'Disconnected';
+        });
+
+        // Handle error...
+        client.on('signalwire.error', function(error){
+            console.error("SignalWire error:", error);
+        });
+
+        client.on('signalwire.notification', handleNotification);
+
+        connectStatus.innerHTML = 'Connecting...';
+        client.connect();
+    }
+
+    function disconnect() {
+        connectStatus.innerHTML = 'Disconnecting...';
+        client.disconnect();
+    }
+
+    /**
+     * Handle notification from the client.
+     */
+    function handleNotification(notification) {
+        console.log("notification", notification.type, notification);
+        switch (notification.type) {
+            case 'callUpdate':
+                handleCallUpdate(notification.call);
+                break;
+            case 'userMediaError':
+                // Permission denied or invalid audio/video params on `getUserMedia`
+                break;
         }
+    }
 
-        /**
-         * Handle notification from the client.
-         */
-        function handleNotification(notification) {
-            console.log("notification", notification.type, notification);
-            switch (notification.type) {
-                case 'callUpdate':
-                    handleCallUpdate(notification.call);
-                    break;
-                case 'userMediaError':
-                    // Permission denied or invalid audio/video params on `getUserMedia`
-                    break;
-            }
-        }
+    /**
+     * Update the UI when the call's state change
+     */
+    function handleCallUpdate(call) {
+        currentCall = call;
+        let callState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
+        console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
+        console.log("Call State: " ,callState);
+        let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
+        callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
 
-        /**
-         * Update the UI when the call's state change
-         */
-        function handleCallUpdate(call) {
-            currentCall = call;
-            let callState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
-            console.log(currentCall.state,currentCall.cause,currentCall.causeCode);
-            console.log("Call State: " ,callState);
-            let msg =  currentCall.causeCode ? `Code:${currentCall.causeCode} Reason: ${currentCall.cause}` : `Early Media:${currentCall.gotEarly} Answered: ${currentCall.gotAnswer}`;
-            callStatus.innerHTML = `${currentCall.prevState} -> ${currentCall.state} </br> ${msg}`;
-
-            switch (call.state) {
-                case 'new': // Set up the UI
-                    break;
-                case 'trying': // Call is being placed and about to ring.
-                    startCall.classList.add('d-none');
-                    hangupCall.classList.remove('d-none');
-                    hangupCall.disabled = false;
-                    break;
-                case 'recovering': // Call is recovering from a previous session
-                    if (confirm('Recover the previous call?')) {
-                        currentCall.answer();
-                        console.log(currentCall.id)
-                    } else {
-                        currentCall.hangup();
-                    }
-                    break;
-                case 'ringing': // Someone is calling you
-                    if (confirm('Pick up the call?')) {
-                        currentCall.answer();
-                    } else {
-                        currentCall.hangup();
-                    }
-                    break;
-                case 'active': // Call has become active
-                    startCall.classList.add('d-none');
-                    hangupCall.classList.remove('d-none');
-                    hangupCall.disabled = false;
-                    dtmfKeys.hidden=false;
-                    break;
-                case 'hangup': // Call is over
-                    startCall.classList.remove('d-none');
-                    hangupCall.classList.add('d-none');
-                    hangupCall.disabled = true;
-                    dtmfKeys.hidden=true;
-                    break;
-                case 'destroy': // Call has been destroyed
-                    currentCall = null;
-                    break;
-            }
-        }
-
-        /**
-         * Make a new outbound call
-         */
-        function makeCall() {
-            const params = {
-                destinationNumber: document.getElementById('number').value, // required!
-                callerNumber: document.getElementById('numberFrom').value, // required!
-                audio: document.getElementById('audio').checked,
-                video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
-            };
-            dtmf_viewer()
-            currentCall = client.newCall(params);
-        }
-
-        /**
-         * Send a DTMF to currentCall if present
-         */
-        function dtmf() {
-            if (currentCall) {
-                let dtmfkey = event.srcElement.id;
-                console.log(dtmfkey);
-                switch (dtmfkey) {
-                    case 'dtmf_0':
-                        currentCall.dtmf('0');
-                        break;
-                    case 'dtmf_1':
-                        currentCall.dtmf('1');
-                        break;
-                    case 'dtmf_2':
-                        currentCall.dtmf('2');
-                        break;
-                    case 'dtmf_3':
-                        currentCall.dtmf('3');
-                        break;
-                    case 'dtmf_4':
-                        currentCall.dtmf('4');
-                        break;
-                    case 'dtmf_5':
-                        currentCall.dtmf('5');
-                        break;
-                    case 'dtmf_6':
-                        currentCall.dtmf('6');
-                        break;
-                    case 'dtmf_7':
-                        currentCall.dtmf('7');
-                        break;
-                    case 'dtmf_8':
-                        currentCall.dtmf('8');
-                        break;
-                    case 'dtmf_9':
-                        currentCall.dtmf('9');
-                        break;
-                    case 'dtmf_hash':
-                        currentCall.dtmf('#');
-                        break;
-                    case 'dtmf_star':
-                        currentCall.dtmf('*');
-                        break;
-                    case 'dtmf_a':
-                        currentCall.dtmf('a');
-                        break;
-                    case 'dtmf_b':
-                        currentCall.dtmf('b');
-                        break;
-                    case 'dtmf_c':
-                        currentCall.dtmf('c');
-                        break;
-                    case 'dtmf_d':
-                        currentCall.dtmf('d');
-                        break;
-                    default:
-                        console.log("unknown dtmf");
+        switch (call.state) {
+            case 'new': // Set up the UI
+                break;
+            case 'trying': // Call is being placed and about to ring.
+                startCall.classList.add('d-none');
+                hangupCall.classList.remove('d-none');
+                hangupCall.disabled = false;
+                break;
+            case 'recovering': // Call is recovering from a previous session
+                if (confirm('Recover the previous call?')) {
+                    currentCall.answer();
+                    console.log(currentCall.id)
+                } else {
+                    currentCall.hangup();
                 }
+                break;
+            case 'ringing': // Someone is calling you
+                if (confirm('Pick up the call?')) {
+                    currentCall.answer();
+                } else {
+                    currentCall.hangup();
+                }
+                break;
+            case 'active': // Call has become active
+                startCall.classList.add('d-none');
+                hangupCall.classList.remove('d-none');
+                hangupCall.disabled = false;
+                dtmfKeys.hidden=false;
+                break;
+            case 'hangup': // Call is over
+                startCall.classList.remove('d-none');
+                hangupCall.classList.add('d-none');
+                hangupCall.disabled = true;
+                dtmfKeys.hidden=true;
+                break;
+            case 'destroy': // Call has been destroyed
+                currentCall = null;
+                break;
+        }
+    }
+
+    /**
+     * Make a new outbound call
+     */
+    function makeCall() {
+        const params = {
+            destinationNumber: document.getElementById('number').value, // required!
+            callerNumber: document.getElementById('numberFrom').value, // required!
+            audio: document.getElementById('audio').checked,
+            video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
+        };
+        dtmf_viewer()
+        currentCall = client.newCall(params);
+    }
+
+    /**
+     * Send a DTMF to currentCall if present
+     */
+    function dtmf() {
+        if (currentCall) {
+            let dtmfkey = event.srcElement.id;
+            console.log(dtmfkey);
+            switch (dtmfkey) {
+                case 'dtmf_0':
+                    currentCall.dtmf('0');
+                    break;
+                case 'dtmf_1':
+                    currentCall.dtmf('1');
+                    break;
+                case 'dtmf_2':
+                    currentCall.dtmf('2');
+                    break;
+                case 'dtmf_3':
+                    currentCall.dtmf('3');
+                    break;
+                case 'dtmf_4':
+                    currentCall.dtmf('4');
+                    break;
+                case 'dtmf_5':
+                    currentCall.dtmf('5');
+                    break;
+                case 'dtmf_6':
+                    currentCall.dtmf('6');
+                    break;
+                case 'dtmf_7':
+                    currentCall.dtmf('7');
+                    break;
+                case 'dtmf_8':
+                    currentCall.dtmf('8');
+                    break;
+                case 'dtmf_9':
+                    currentCall.dtmf('9');
+                    break;
+                case 'dtmf_hash':
+                    currentCall.dtmf('#');
+                    break;
+                case 'dtmf_star':
+                    currentCall.dtmf('*');
+                    break;
+                case 'dtmf_a':
+                    currentCall.dtmf('a');
+                    break;
+                case 'dtmf_b':
+                    currentCall.dtmf('b');
+                    break;
+                case 'dtmf_c':
+                    currentCall.dtmf('c');
+                    break;
+                case 'dtmf_d':
+                    currentCall.dtmf('d');
+                    break;
+                default:
+                    console.log("unknown dtmf");
             }
         }
+    }
 
-        /**
-         * Hangup the currentCall if present
-         */
-        function hangup() {
-            if (currentCall) {
-                currentCall.hangup()
-            }
+    /**
+     * Hangup the currentCall if present
+     */
+    function hangup() {
+        if (currentCall) {
+            currentCall.hangup()
         }
+    }
 
-        function saveInLocalStorage(e) {
-            let key = e.target.name || e.target.id
-            localStorage.setItem('relay.example.' + key, e.target.value);
+    function saveInLocalStorage(e) {
+        let key = e.target.name || e.target.id
+        localStorage.setItem('relay.example.' + key, e.target.value);
+    }
+    function ready(callback) {
+        if (document.readyState !== 'loading') {
+            callback();
+        } else if (document.addEventListener) {
+            document.addEventListener('DOMContentLoaded', callback);
+        } else {
+            document.attachEvent('onreadystatechange', function() {
+                if (document.readyState !== 'loading') {
+                    callback();
+                }
+            });
         }
-        function ready(callback) {
-            if (document.readyState !== 'loading') {
-                callback();
-            } else if (document.addEventListener) {
-                document.addEventListener('DOMContentLoaded', callback);
-            } else {
-                document.attachEvent('onreadystatechange', function() {
-                    if (document.readyState !== 'loading') {
-                        callback();
-                    }
-                });
-            }
-        }
-    </script>
-
-
+    }
+</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-
 <script>
     async function refresh_token() {
         disconnect()
@@ -559,7 +552,7 @@
         $.ajax({
             url: "/jwt_refresh",
             method: "PUT",
-            data: { refresh_token: document.getElementById('jwt_refresh').value },
+            data: { refresh_token: document.getElementById('jwt_refresh').value, duration: document.getElementById("jwt_duration-box").value },
             success: function(data) {
                 $('#token').val(data.jwt_token);
                 $('#jwt_refresh').val(data.refresh_token);
@@ -598,6 +591,18 @@
                     connect()
                 }
             });
+        });
+    });
+
+    $(document).ready(function() {
+        $('#jwt_duration-box').hide();
+        $('#verto_duration_switch').change(function() {
+            if ($(this).is(':checked')) {
+                $('#jwt_duration-box').show();
+            } else {
+                $('#jwt_duration-box').hide();
+                $('#jwt_duration-box').val(""); // Reset the value to empty
+            }
         });
     });
 

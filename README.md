@@ -15,6 +15,7 @@ List of additions
 - Updated Bootstrap and layout slightly.
 - Fixed DTMF keys being broken. These now display properly and hide when a call is not made.
 - Removed deprecated event gathering and methods.
+- Ability to select codecs. (This was taken from Luca's example! Check it out: [Here](https://github.com/lpradovera/network-testing/tree/main) :)
   
 Instructions
 -----------

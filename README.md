@@ -17,6 +17,7 @@ List of additions
 - Removed deprecated event gathering and methods.
 - Ability to select codecs. (This was taken from Luca's example! Check it out: [Here](https://github.com/lpradovera/network-testing/tree/main) :)
 - Ability to customize JWT duration.
+- Select to force EU infrastructure.
 
 Instructions
 -----------

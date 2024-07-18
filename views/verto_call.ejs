@@ -83,6 +83,10 @@
                                 <input class="form-check-input" type="checkbox" id="eu_sw">
                                 <label class="form-check-label" for="eu_sw">Force EU Infrastructure?</label>
                             </div>
+                            <div class="form-check form-switch mt-3">
+                                <input class="form-check-input" type="checkbox" id="token_switch">
+                                <label class="form-check-label" for="token_switch">Disable token refreshing?</label>
+                            </div>
                             <div class="row mt-3">
                                 <div class="col-6">
                                     <small>Status: <span id='connectStatus'>Not Connected</span></small>
@@ -91,11 +95,6 @@
                                 </div>
                             </div>
                         </form>
-                        <div class="row mt-3">
-                            <div class="col-6">
-                                <button id="btn" class="btn btn-block btn-danger w-100" onclick="refresh_token()">Refresh Token</button>
-                            </div>
-                        </div>
                     </div>
                     <small id="tokenHelp" class="form-text text-muted">Enter a project ID above and resource name. Once ready, press connect to begin placing calls.</small>
                 </div>
@@ -368,7 +367,11 @@
 
         client.on('signalwire.ready', function() {
             btnConnect.classList.add('d-none');
+            btnConnect.disabled = true; // Disable the connect button
+
             btnDisconnect.classList.remove('d-none');
+            btnDisconnect.disabled = false; // Enable the disconnect button
+
             connectStatus.innerHTML = 'Connected';
 
             startCall.disabled = false;
@@ -377,7 +380,11 @@
         // Update UI on socket close
         client.on('signalwire.socket.close', function() {
             btnConnect.classList.remove('d-none');
+            btnConnect.disabled = false; // Enable the connect button
+
             btnDisconnect.classList.add('d-none');
+            btnDisconnect.disabled = true; // Disable the disconnect button
+
             connectStatus.innerHTML = 'Disconnected';
         });
 
@@ -408,6 +415,19 @@
                 break;
             case 'userMediaError':
                 // Permission denied or invalid audio/video params on `getUserMedia`
+                break;
+            case 'refreshToken':
+                // Check if the checkbox is checked
+                if (!document.getElementById('token_switch').checked) {
+                    // Take a new token from your server...
+                    refresh_token()
+                        .then(async (jwt_token) => {
+                            await client.refreshToken(jwt_token).catch(console.error);
+                        })
+                        .catch(error => {
+                            console.error('Failed to refresh token:', error);
+                        });
+                }
                 break;
         }
     }
@@ -573,20 +593,28 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script>
     // Handles the token refreshing.
-    async function refresh_token() {
-        disconnect()
-        await new Promise(r => setTimeout(r, 750));
-        $.ajax({
-            url: "/jwt_refresh",
-            method: "PUT",
-            data: { refresh_token: document.getElementById('jwt_refresh').value, duration: document.getElementById("jwt_duration-box").value },
-            success: function(data) {
-                $('#token').val(data.jwt_token);
-                $('#jwt_refresh').val(data.refresh_token);
-                connect()
-            }
+    function refresh_token() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: "/jwt_refresh",
+                method: "PUT",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    refresh_token: document.getElementById('jwt_refresh').value,
+                    duration: document.getElementById("jwt_duration-box").value
+                }),
+                success: function(data) {
+                    $('#token').val(data.jwt_token);
+                    $('#jwt_refresh').val(data.refresh_token);
+                    resolve(data.jwt_token);
+                },
+                error: function(xhr, status, error) {
+                    reject(error);
+                }
+            });
         });
     }
+
     // Handles switching STUN on/off.
     async function stun_swap() {
         disconnect()

@@ -10,14 +10,14 @@ List of additions
 -----------
 
 - JWT generator built within the application for ease of access.
-- Refresh JWT button.
+- Automatically refreshes JWTs unless turned off.
 - STUN server On/Off switch.
 - Updated Bootstrap and layout slightly.
 - Fixed DTMF keys being broken. These now display properly and hide when a call is not made.
 - Removed deprecated event gathering and methods.
 - Ability to select codecs. (This was taken from Luca's example! Check it out: [Here](https://github.com/lpradovera/network-testing/tree/main) :)
-- Ability to customize JWT duration.
-- Button to force EU infrastructure.
+- Customize JWT duration.
+- Force EU infrastructure On/Off switch.
 
 Instructions
 -----------

@@ -61,11 +61,6 @@
                         <input type="text" class="form-control" id="token" placeholder="Enter your JWT">
                         <small id="tokenHelp" class="form-text text-muted">Use the generator below to generate a JWT. For more information, visit <a href="https://docs.signalwire.com/reference/relay-sdk-js/v1/#relay-sdk-for-javascript">Using the JavaScript SDK Documentation</a></small>
                     </div>
-                    <div class="mt-3 text-muted">
-                        <button id="btnConnect" class="btn btn-block btn-success" onclick="connect()">Connect</button>
-                        <button id="btnDisconnect" class="btn btn-block btn-danger d-none" onclick="disconnect()">Disconnect</button>
-                        <small>Status: <span id='connectStatus'>Not Connected</span></small>
-                    </div>
                 </div>
             </div>
             <div class="card">
@@ -90,7 +85,9 @@
                             </div>
                             <div class="row mt-3">
                                 <div class="col-6">
-                                    <input class="btn btn-primary w-100" type="submit" value="Submit" id="submit">
+                                    <small>Status: <span id='connectStatus'>Not Connected</span></small>
+                                    <input class="btn btn-success w-100" type="submit" value="Connect" id="btnConnect">
+                                    <button id="btnDisconnect" class="btn btn-danger w-100 d-none" onclick="disconnect()">Disconnect</button>
                                 </div>
                             </div>
                         </form>
@@ -100,7 +97,7 @@
                             </div>
                         </div>
                     </div>
-                    <small id="tokenHelp" class="form-text text-muted">Enter a project ID above and resource name. Once ready, press submit to begin placing calls.</small>
+                    <small id="tokenHelp" class="form-text text-muted">Enter a project ID above and resource name. Once ready, press connect to begin placing calls.</small>
                 </div>
             </div>
             <div class="card">

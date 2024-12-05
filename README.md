@@ -11,7 +11,7 @@ List of additions
 
 - JWT generator built within the application for ease of access.
 - Automatically refreshes JWTs unless turned off.
-- STUN server On/Off switch.
+- STUN/TURN server On/Off switch.
 - Updated Bootstrap and layout slightly.
 - Fixed DTMF keys being broken. These now display properly and hide when a call is not made.
 - Removed deprecated event gathering and methods.

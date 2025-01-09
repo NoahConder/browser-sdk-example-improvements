@@ -74,18 +74,14 @@
                             <input type="text" class="form-control" id="verto_resource_box" name="verto_resource_box" autocomplete="off" placeholder="Resource name">
                             <div class="form-check form-switch mt-3">
                                 <input class="form-check-input" type="checkbox" id="verto_duration_switch">
-                                <label class="form-check-label" for="verto_duration_switch">Adjust the JWT's duration?</label>
+                                <label class="form-check-label" for="verto_duration_switch">Adjust JWT Duration</label>
                             </div>
                             <div class="input-group mt-3">
                                 <input type="text" class="form-control hidden" id="jwt_duration-box" name="jwt_duration" autocomplete="off" placeholder="Enter JWT duration in minutes">
                             </div>
                             <div class="form-check form-switch mt-3">
-                                <input class="form-check-input" type="checkbox" id="eu_sw">
-                                <label class="form-check-label" for="eu_sw">Force EU Infrastructure?</label>
-                            </div>
-                            <div class="form-check form-switch mt-3">
                                 <input class="form-check-input" type="checkbox" id="token_switch">
-                                <label class="form-check-label" for="token_switch">Disable token refreshing?</label>
+                                <label class="form-check-label" for="token_switch">Disable JWT Refreshing</label>
                             </div>
                             <div class="row mt-3">
                                 <div class="col-6">
@@ -322,28 +318,16 @@
         document.getElementById('audio').checked = audio === '1';
         document.getElementById('video').checked = video === '1';
         document.getElementById('stun').checked = stun === '1';
-        document.getElementById('eu_sw').checked = host !== '0';
-
     });
 
     /**
      * Connect with Relay creating a client and attaching all the event handler.
      */
     function connect() {
-        if (document.getElementById("eu_sw").checked) {
-            client = new Relay({
-                project: document.getElementById('project').value,
-                token: document.getElementById('token').value,
-                host: "eu.relay.signalwire.com"
-            });
-            console.log("Connected to EU SignalWire.");
-        } else {
-            client = new Relay({
-                project: document.getElementById('project').value,
-                token: document.getElementById('token').value
-            });
-            console.log("Connected to default SignalWire.");
-        }
+        client = new Relay({
+            project: document.getElementById('project').value,
+            token: document.getElementById('token').value
+        });
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';

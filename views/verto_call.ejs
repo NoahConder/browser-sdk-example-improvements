@@ -158,6 +158,14 @@
                 <button id="dtmf_b" class="btn btn-primary px-2 mt-4" onClick="dtmf()">B</button>
                 <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
                 <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
+                <div class="form-group mt-3">
+                    <button id="mute_audio" class="btn btn-danger" onClick="currentCall.muteAudio()">Mute</button>
+                </div>
+
+                <div class="form-group mt-3">
+                    <select id="deviceSelect" class="form-select mt-2"></select>
+                    <button class="btn btn-primary px-2 mt-2" onClick="setDevice()">Set Device</button>
+                </div>
             </div>
         </div>
     </div>
@@ -306,7 +314,10 @@
         };
     };
 
-
+    async function setDevice() {
+        const deviceId = document.getElementById('deviceSelect').value;
+        if (deviceId) await currentCall.setAudioInDevice(deviceId);
+    }
     /**
      * On document ready autofill the input values from the localStorage.
      */
@@ -328,6 +339,17 @@
             project: document.getElementById('project').value,
             token: document.getElementById('token').value
         });
+
+        async function populateDevices() {
+            const devices = await client.getDevices();
+            const select = document.getElementById('deviceSelect');
+            select.innerHTML = devices
+                .filter(d => d.kind === 'audioinput')
+                .map(d => `<option value="${d.deviceId}">${d.label || d.deviceId}</option>`)
+                .join('');
+        }
+
+        populateDevices();
 
         // client.autoRecoverCalls = false;
         client.remoteElement = 'remoteVideo';

@@ -17,6 +17,8 @@ SIGNALWIRE_SPACE=your-space.signalwire.com
 - Removed deprecated event gathering and methods.
 - Ability to select codecs. (This was taken from Luca's example! Check it out: [Here](https://github.com/lpradovera/network-testing/tree/main) :)
 - Customize JWT duration.
+- Select Device Option.
+- Ability to mute video/audio during call.
 
 ### Instructions
 1. run `npm install`

@@ -139,29 +139,36 @@
                     Enable STUN/TURN
                 </label>
             </div>
-            <button id="startCall" class="btn btn-primary px-5 mt-4" onClick="makeCall()" disabled="disabled">Call</button>
-            <button id="hangupCall" class="btn btn-danger px-5 mt-4 d-none" onClick="hangup()" disabled="disabled">Hang up</button>
+            <button id="startCall" class="btn btn-primary px-5 mt-4 mb-4" onClick="makeCall()" disabled="disabled">Call</button>
+            <button id="hangupCall" class="btn btn-danger px-5 mt-4 mb-4 d-none" onClick="hangup()" disabled="disabled">Hang up</button>
             <div class="form-group" id="dtmfKeys">
-                <button id="dtmf_1" class="btn btn-primary px-2 mt-4" onClick="dtmf()">1</button>
-                <button id="dtmf_2" class="btn btn-primary px-2 mt-4" onClick="dtmf()">2</button>
-                <button id="dtmf_3" class="btn btn-primary px-2 mt-4" onClick="dtmf()">3</button>
-                <button id="dtmf_4" class="btn btn-primary px-2 mt-4" onClick="dtmf()">4</button>
-                <button id="dtmf_5" class="btn btn-primary px-2 mt-4" onClick="dtmf()">5</button>
-                <button id="dtmf_6" class="btn btn-primary px-2 mt-4" onClick="dtmf()">6</button>
-                <button id="dtmf_7" class="btn btn-primary px-2 mt-4" onClick="dtmf()">7</button>
-                <button id="dtmf_8" class="btn btn-primary px-2 mt-4" onClick="dtmf()">8</button>
-                <button id="dtmf_9" class="btn btn-primary px-2 mt-4" onClick="dtmf()">9</button>
-                <button id="dtmf_0" class="btn btn-primary px-2 mt-4" onClick="dtmf()">0</button>
-                <button id="dtmf_hash" class="btn btn-primary px-2 mt-4" onClick="dtmf()">#</button>
-                <button id="dtmf_star" class="btn btn-primary px-2 mt-4" onClick="dtmf()">*</button>
-                <button id="dtmf_a" class="btn btn-primary px-2 mt-4" onClick="dtmf()">A</button>
-                <button id="dtmf_b" class="btn btn-primary px-2 mt-4" onClick="dtmf()">B</button>
-                <button id="dtmf_c" class="btn btn-primary px-2 mt-4" onClick="dtmf()">C</button>
-                <button id="dtmf_d" class="btn btn-primary px-2 mt-4" onClick="dtmf()">D</button>
+                <div class="card">
+                    <div class="card-body">
+                <h5>DTMF Keys</h5>
+                <button id="dtmf_1" class="btn btn-primary px-2" onClick="dtmf()">1</button>
+                <button id="dtmf_2" class="btn btn-primary px-2" onClick="dtmf()">2</button>
+                <button id="dtmf_3" class="btn btn-primary px-2" onClick="dtmf()">3</button>
+                <button id="dtmf_4" class="btn btn-primary px-2" onClick="dtmf()">4</button>
+                <button id="dtmf_5" class="btn btn-primary px-2" onClick="dtmf()">5</button>
+                <button id="dtmf_6" class="btn btn-primary px-2" onClick="dtmf()">6</button>
+                <button id="dtmf_7" class="btn btn-primary px-2" onClick="dtmf()">7</button>
+                <button id="dtmf_8" class="btn btn-primary px-2" onClick="dtmf()">8</button>
+                <button id="dtmf_9" class="btn btn-primary px-2" onClick="dtmf()">9</button>
+                <button id="dtmf_0" class="btn btn-primary px-2" onClick="dtmf()">0</button>
+                <button id="dtmf_hash" class="btn btn-primary px-2" onClick="dtmf()">#</button>
+                <button id="dtmf_star" class="btn btn-primary px-2" onClick="dtmf()">*</button>
+                <button id="dtmf_a" class="btn btn-primary px-2" onClick="dtmf()">A</button>
+                <button id="dtmf_b" class="btn btn-primary px-2" onClick="dtmf()">B</button>
+                <button id="dtmf_c" class="btn btn-primary px-2" onClick="dtmf()">C</button>
+                <button id="dtmf_d" class="btn btn-primary px-2" onClick="dtmf()">D</button>
                 <div class="form-group mt-3">
-                    <button id="mute_audio" class="btn btn-danger" onClick="currentCall.muteAudio()">Mute</button>
+                    <h5>Call Options</h5>
+                    <button id="mute_audio_btn" class="btn btn-danger mb-2" onClick="muteAudio()">Mute Audio</button>
+                    <button id="unmute_audio_btn" class="btn btn-success mb-2" onClick="unmuteAudio()" style="display: none;">Unmute Audio</button>
+                    <button id="mute_video_btn" class="btn btn-danger mb-2" onClick="muteVideo()">Disable Video</button>
+                    <button id="unmute_video_btn" class="btn btn-success mb-2" onClick="unmuteVideo()" style="display: none;">Enable Video</button>
                 </div>
-
+                        <h5>Device Options</h5>
                 <div class="form-group mt-3">
                     <select id="deviceSelect" class="form-select mt-2"></select>
                     <button class="btn btn-primary px-2 mt-2" onClick="setDevice()">Set Device</button>
@@ -669,6 +676,27 @@
             }
         });
     });
+        function muteAudio() {
+        currentCall.muteAudio();
+        document.getElementById("mute_audio_btn").style.display = "none";
+        document.getElementById("unmute_audio_btn").style.display = "inline-block";
+    }
 
+        function unmuteAudio() {
+        currentCall.unmuteAudio();
+        document.getElementById("mute_audio_btn").style.display = "inline-block";
+        document.getElementById("unmute_audio_btn").style.display = "none";
+    }
+    function muteVideo() {
+        currentCall.muteVideo();
+        document.getElementById("mute_video_btn").style.display = "none";
+        document.getElementById("unmute_video_btn").style.display = "inline-block";
+    }
+
+    function unmuteVideo() {
+        currentCall.unmuteVideo();
+        document.getElementById("mute_video_btn").style.display = "inline-block";
+        document.getElementById("unmute_video_btn").style.display = "none";
+    }
 </script>
 </html>

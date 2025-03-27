@@ -183,6 +183,8 @@
             <p>If you notice any JavaScript errors in the console relating to <code>localStorage</code>, try unblocking 3rd Party Cookies. Some browsers mark localStorage Cookies as 3rd Party when being run from <code>file://</code>.</p>
         </div>
     </div>
+        </div>
+    </div>
 </div>
 </body>
 <script type="text/javascript">
@@ -402,9 +404,19 @@
             connectStatus.innerHTML = 'Disconnected';
         });
 
-        // Handle error...
-        client.on('signalwire.error', function(error){
-            console.error("SignalWire error:", error);
+
+        // Log socket events
+        client.on("signalwire.error", (error) => {
+            console.log(error);
+        });
+        client.on("signalwire.socket.open", (error) => {
+            console.log(error);
+        });
+        client.on("signalwire.socket.error", (error) => {
+            console.log(error);
+        });
+        client.on("signalwire.socket.close", (error) => {
+            console.log(error);
         });
 
         client.on('signalwire.notification', handleNotification);
@@ -433,6 +445,7 @@
             case 'refreshToken':
                 // Check if the checkbox is checked
                 if (!document.getElementById('token_switch').checked) {
+                    console.log("Refresh")
                     // Take a new token from your server...
                     refresh_token()
                         .then(async (jwt_token) => {
@@ -638,8 +651,6 @@
     // Handles DTMF. Turns on when a call is made and off when not.
     async function dtmf_viewer() {
         await new Promise(r => setTimeout(r, 750));
-        // This fixes the DTMF keys always being hidden. The sleep is to ensure the call is made before checking.
-        // It also retains the DTMF keys only displaying once a call is made.
         let x = document.getElementById("dtmfKeys");
         if (currentCall) {
             x.style.display = "block"
@@ -676,6 +687,7 @@
             }
         });
     });
+        // Handles visibility on mute buttons
         function muteAudio() {
         currentCall.muteAudio();
         document.getElementById("mute_audio_btn").style.display = "none";

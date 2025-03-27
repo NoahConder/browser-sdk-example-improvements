@@ -1,7 +1,10 @@
-# Browser SDK Example Improved
+# Browser SDK Example - Improved
 
-Included is a .env that will need the credentials below.
+This project aims to add additional functionality to the vanilla SignalWire Browser SDK example, featuring several enhancements for ease of use and control.
 
+## Setup
+### Environment Variables
+Included is an `.env` file where you'll need to add the following credentials:
 ```dotenv
 SIGNALWIRE_API=SIGNALWIRE API TOKEN GOES HERE
 SIGNALWIRE_PROJECT=SIGNALWIRE PROJECT ID GOES HERE

@@ -4,12 +4,17 @@ This project aims to add additional functionality to the vanilla SignalWire Brow
 
 ## Setup
 ### Environment Variables
-Included is an `.env` file where you'll need to add the following credentials:
+You'll need to create a `.env` file from `example.env` with the following credentials:
 ```dotenv
-SIGNALWIRE_API=SIGNALWIRE API TOKEN GOES HERE
-SIGNALWIRE_PROJECT=SIGNALWIRE PROJECT ID GOES HERE
+SIGNALWIRE_API=SIGNALWIRE-API-TOKEN-GOES-HERE
+SIGNALWIRE_PROJECT=SIGNALWIRE-PROJECT-ID-GOES-HERE
 SIGNALWIRE_SPACE=your-space.signalwire.com
+SDK_VERSION=stable
 ```
+
+**SDK_VERSION Options:**
+- `stable` - Uses the latest stable SDK from CDN (default)
+- `local` - Uses the local SDK from `/lib/signalwire.js`
 
 ### List of Additions and Changes
 - **Built-in JWT Generator** – Generates JWTs within the app for easy authentication.
@@ -22,7 +27,8 @@ SIGNALWIRE_SPACE=your-space.signalwire.com
 - **JWT Customization** – Set the duration of JWTs as needed.
 - **Device Selection** – Choose input devices.
 - **Mute Controls** – Mute/unmute video and audio during a call.
-
+- **SDK Version Selection** – Switch between the latest stable CDN release and local SDK versions for
+  testing and development
 ### Instructions
 1. run `npm install`
 2. Change `example.env` to `.env` and enter your credentials.

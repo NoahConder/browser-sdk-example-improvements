@@ -1,9 +1,12 @@
 {
   "name": "browser-sdk-example-improvements",
   "version": "1.0.0",
-  "description": "",
+  "description": "Enhanced SignalWire Browser SDK example with JWT generation, auto-refresh, codec selection, and webpack bundling",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
+    "build": "webpack",
+    "build:watch": "webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -12,9 +15,14 @@
   },
   "private": true,
   "dependencies": {
+    "@signalwire/js": "^1.5.0",
     "axios": "^1.8.4",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.102.0",
+    "webpack-cli": "^6.0.1"
   }
 }

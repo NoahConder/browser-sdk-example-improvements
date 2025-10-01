@@ -14,7 +14,7 @@ SDK_VERSION=stable
 
 **SDK_VERSION Options:**
 - `stable` - Uses the latest stable SDK from CDN (default)
-- `local` - Uses the local SDK from `/lib/signalwire.js`
+- `local` - Uses the webpack-bundled SDK from `/public/lib/signalwire-bundle.js`
 
 ### List of Additions and Changes
 - **Built-in JWT Generator** – Generates JWTs within the app for easy authentication.
@@ -27,12 +27,13 @@ SDK_VERSION=stable
 - **JWT Customization** – Set the duration of JWTs as needed.
 - **Device Selection** – Choose input devices.
 - **Mute Controls** – Mute/unmute video and audio during a call.
-- **SDK Version Selection** – Switch between the latest stable CDN release and local SDK versions for
-  testing and development
+- **SDK Version Selection** – Switch between the latest stable CDN release and local SDK versions for testing and development
+- **Webpack Support** – Bundle the @signalwire/js package from npm for local development
 ### Instructions
 1. run `npm install`
 2. Change `example.env` to `.env` and enter your credentials.
-3. run `node app.js`
-4. Open the generated URL from the terminal in your browser.
-5. Once at the site, enter your Project ID and a Verto resource name.
-6. You're all set! Press connect and start making calls!
+3. (Optional) If using `SDK_VERSION=local`, run `npm run build` to bundle the SDK
+4. run `node app.js`
+5. Open the generated URL from the terminal in your browser.
+6. Once at the site, enter your Project ID and a Verto resource name.
+7. You're all set! Press connect and start making calls!

@@ -128,3 +128,13 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Webpack build output
+public/lib/signalwire-bundle.js
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

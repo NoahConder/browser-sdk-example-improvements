@@ -129,8 +129,6 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Webpack build output
-public/lib/signalwire-bundle.js
 
 # IDE
 .idea/
@@ -138,3 +136,7 @@ public/lib/signalwire-bundle.js
 *.swp
 *.swo
 *~
+
+# OS files
+.DS_Store
+Thumbs.db

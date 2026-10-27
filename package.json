@@ -1,17 +1,21 @@
 {
-  "name": "browser-sdk-example-improvements",
-  "version": "1.0.0",
-  "description": "Enhanced SignalWire Browser SDK example with JWT generation, auto-refresh, codec selection, and webpack bundling",
+  "name": "browser-sdk-v2-example",
+  "version": "2.0.0",
+  "description": "SignalWire Browser SDK v2 (Relay client) example with a JWT token server, auto-refresh, device/codec/ICE options and an event log for troubleshooting calls",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "build": "webpack",
-    "build:watch": "webpack --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{js,css,md,json}\"",
+    "format:check": "prettier --check \"**/*.{js,css,md,json}\""
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/NoahConder/browser-sdk-example-improvements.git"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "private": true,
   "dependencies": {
@@ -22,7 +26,9 @@
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "webpack": "^5.102.0",
-    "webpack-cli": "^6.0.1"
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.0.0"
   }
 }

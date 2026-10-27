@@ -3,1186 +3,257 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SignalWire Browser SDK Example</title>
-    <!-- Cross Browser WebRTC Adapter -->
-    <script type="text/javascript" src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-    <!-- Include the SignalWire Relay JS SDK -->
-    <% if (sdkVersion === 'local') { %>
-        <script type="text/javascript" src="/lib/signalwire-bundle.js"></script>
-    <% } else { %>
-        <script src="https://unpkg.com/@signalwire/js@^1"></script>
-    <% } %>
-    <!-- To style up the demo a little -->
+    <title>SignalWire Browser SDK v2 Example</title>
+    <link rel="icon" type="image/svg+xml" href="https://signalwire.com/favicon.svg">
+    <!-- Fonts used by signalwire.com/docs: Lexend (body), Instrument Sans (headings), JetBrains Mono (code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&family=Instrument+Sans:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="shortcut icon" href="https://signalwire.com/assets/images/favicon.ico" />
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-        body {
-            font-family: 'Roboto', sans-serif;
-        }
-        #dtmfKeys {
-            display: none
-        }
-        .row {
-            display: flex;
-            justify-content: space-between;
-        }
-        .col-6 {
-            flex: 1;
-            margin-right: 10px;
-        }
-        .col-6:last-child {
-            margin-right: 0;
-        }
-        /* Video containers */
-        .video-container {
-            background-color: #000;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        /* Card styling */
-        .card {
-            margin-bottom: 1rem;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        /* DTMF keypad styling */
-        .dtmf-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
-            margin: 1rem 0;
-            max-width: 300px;
-        }
-
-        .dtmf-key {
-            padding: 0.75rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            aspect-ratio: 1;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .dtmf-key:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,123,255,0.3);
-        }
-
-        .dtmf-key:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(0,123,255,0.2);
-        }
-
-        .dtmf-key:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
-        }
-
-        /* Status indicators */
-        .status-indicator {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .status-connected {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-disconnected {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status-connecting {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #007bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Form controls */
-        .form-control {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        /* Button spacing and consistency */
-        .action-button {
-            min-width: 120px;
-            margin: 0.5rem;
-        }
-
-        /* Form validation styles */
-        .is-invalid {
-            border-color: #dc3545;
-        }
-        
-        .invalid-feedback {
-            display: block;
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-        
-        .is-valid {
-            border-color: #28a745;
-        }
-
-        /* Responsive improvements */
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .video-container {
-                margin-bottom: 2rem;
-            }
-            
-            .dtmf-grid {
-                grid-template-columns: repeat(3, 1fr);
-                max-width: 250px;
-                margin: 0 auto;
-            }
-            
-            .dtmf-key {
-                font-size: 1rem;
-                padding: 0.5rem;
-            }
-            
-            .card-body {
-                padding: 1rem;
-            }
-
-            /* Stack cards vertically on mobile */
-            .col-md-4, .col-md-8 {
-                margin-bottom: 1.5rem;
-            }
-        }
-    </style>
+    <link href="/css/app.css" rel="stylesheet">
+    <!-- Cross-browser WebRTC adapter -->
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <!-- SignalWire Browser SDK v2 (the `Relay` global). Pinned; see public/routes/verto_call.js -->
+    <% if (sdk.mode === 'local') { %>
+    <script src="/lib/index.min.js"></script>
+    <% } else { %>
+    <script src="https://unpkg.com/@signalwire/js@<%= sdk.cdnVersion %>/dist/index.min.js"></script>
+    <% } %>
 </head>
-<!-- Main Content -->
-<body class="bg-light">
-<div class="container">
-    <div class="row pt-4">
-        <div class="col-12 pb-4">
-            <div class="text-center mb-4">
-                <h1 class="display-6 fw-bold text-primary mb-3">SignalWire Browser SDK</h1>
-                <p class="lead text-muted mb-4">
-                    Make calls to browsers, SIP endpoints, or phone numbers directly from your browser
-                </p>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="https://developer.signalwire.com/sdks/browser-sdk/v2" target="_blank" class="btn btn-outline-primary btn-sm">
-                        Documentation
-                    </a>
-                </div>
+<body>
+<div class="container py-4">
+    <header class="text-center mb-4">
+        <h1 class="mb-2">SignalWire Browser SDK v2</h1>
+        <p class="lead mb-3">Call browsers, SIP endpoints and phone numbers from this page using the <code>Relay</code> client.</p>
+        <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+            <a href="https://signalwire.com/docs/browser-sdk/v2/js" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">v2 documentation</a>
+            <span id="sdkBadge" class="sw-badge">SDK <%= sdk.loadedVersion %></span>
+            <div id="themeToggle" class="btn-group btn-group-sm" role="group" aria-label="Colour scheme">
+                <button type="button" class="btn btn-outline-secondary" data-theme-choice="system" aria-pressed="true">System</button>
+                <button type="button" class="btn btn-outline-secondary" data-theme-choice="light" aria-pressed="false">Light</button>
+                <button type="button" class="btn btn-outline-secondary" data-theme-choice="dark" aria-pressed="false">Dark</button>
             </div>
         </div>
-    </div>
-    <hr />
-    <div class="row py-4">
-        <div class="col-12 col-lg-4 mb-4">
-            <div class="card mb-3">
+    </header>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-4">
+            <div class="card mb-4">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0 fw-semibold">Connection Setup</h5>
-                    </div>
-                    <div class="form-group">
-                        <label for="project">Project</label>
-                        <input type="text" class="form-control" id="project" placeholder="Enter Project ID">
-                        <small id="projectHelp" class="form-text text-muted">Enter the Project ID found on your SignalWire Project Dashboard.</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="token">Token</label>
-                        <input type="text" class="form-control" id="token" placeholder="Enter your JWT">
-                        <small id="tokenHelp" class="form-text text-muted">Use the generator below to generate a JWT. For more information, visit <a href="https://developer.signalwire.com/sdks/browser-sdk/v2#authentication-using-jwt">Using the JavaScript SDK Documentation</a></small>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card mb-3">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0 fw-semibold">Configuration</h5>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Audio Codecs</label>
-                        <select id="codecs" class="form-select" multiple size="4"></select>
-                        <small class="text-muted">Select audio codecs for the call</small>
-                    </div>
-                    
-                    <form id="verto_resource" method="post">
+                    <h2 class="card-title">Connection</h2>
+                    <form id="connectForm" novalidate>
                         <div class="mb-3">
-                            <label for="verto_resource_box" class="form-label">Resource Name</label>
-                            <input type="text" class="form-control" id="verto_resource_box" name="verto_resource_box" autocomplete="off" placeholder="Enter resource name" required>
+                            <label for="project" class="form-label">Project ID</label>
+                            <input type="text" class="form-control" id="project" name="project" autocomplete="off" data-persist required>
+                            <div class="form-text">Prefilled from the server's <code>SIGNALWIRE_PROJECT</code>; change it to test another project.</div>
                         </div>
-                        
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="verto_duration_switch">
-                            <label class="form-check-label" for="verto_duration_switch">Custom JWT Duration</label>
-                        </div>
-                        
-                        <div class="mb-3" style="display: none;" id="jwt_duration_container">
-                            <input type="text" class="form-control" id="jwt_duration-box" name="jwt_duration" autocomplete="off" placeholder="Duration in minutes">
-                        </div>
-                        
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="token_switch">
-                            <label class="form-check-label" for="token_switch">Disable Auto-refresh</label>
-                        </div>
-                        
                         <div class="mb-3">
-                            <div id='connectStatus' class="status-indicator status-disconnected">
-                                <span class="status-icon">●</span>
-                                <span class="status-text">Not Connected</span>
-                            </div>
+                            <label for="resource" class="form-label">Resource name</label>
+                            <input type="text" class="form-control" id="resource" name="resource" autocomplete="off" placeholder="e.g. browser-test" data-persist required>
+                            <div class="form-text">The Relay resource this browser registers as. Other endpoints dial it by this name.</div>
                         </div>
-                        
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="durationSwitch" data-persist>
+                            <label class="form-check-label" for="durationSwitch">Custom JWT duration</label>
+                        </div>
+                        <div class="mb-3" id="durationWrap" hidden>
+                            <label for="durationBox" class="form-label visually-hidden">JWT duration in minutes</label>
+                            <input type="text" inputmode="numeric" class="form-control" id="durationBox" name="durationBox" autocomplete="off" placeholder="Minutes (default 15)" data-persist>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked data-persist>
+                            <label class="form-check-label" for="autoRefresh">Auto-refresh the JWT before it expires</label>
+                        </div>
+                        <div class="mb-3">
+                            <span id="connectStatus" class="sw-status" data-state="disconnected" role="status" aria-live="polite">Not connected</span>
+                        </div>
                         <div class="d-grid gap-2">
-                            <input class="btn btn-success" type="submit" value="Connect" id="btnConnect">
-                            <button id="btnDisconnect" class="btn btn-danger d-none">Disconnect</button>
+                            <button type="submit" class="btn btn-primary" id="btnConnect">Generate JWT and connect</button>
+                            <button type="button" class="btn btn-danger" id="btnDisconnect" hidden>Disconnect</button>
                         </div>
                     </form>
-                    
-                    <small class="form-text text-muted mt-2 d-block">Enter project credentials and resource name, then connect to start making calls.</small>
+                    <div class="mt-3">
+                        <label for="token" class="form-label">JWT</label>
+                        <div class="sw-token-row">
+                            <input type="text" class="form-control" id="token" readonly placeholder="Generated on connect" aria-describedby="tokenExpiry">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="tokenCopy" aria-label="Copy JWT">Copy</button>
+                        </div>
+                        <div class="form-text" id="tokenExpiry">No token yet</div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="card">
+
+            <div class="card mb-4">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0 fw-semibold">Call Status</h5>
+                    <h2 class="card-title">Devices</h2>
+                    <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                        <span id="permStatus" class="sw-status" data-state="" role="status" aria-live="polite">Connect to check</span>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnPermissions" disabled>Check permissions</button>
                     </div>
-                    <div id='callStatus' class="status-indicator status-disconnected">
-                        <svg width="16" height="16" fill="currentColor" class="me-2">
-                            <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122L9.98 10.98c-.145.052-.298.047-.442-.014L7.793 10.2a4.546 4.546 0 0 1-2.367-2.367L4.66 6.087a.678.678 0 0 0-.014-.442L5.21 3.34a.678.678 0 0 0-.122-.58L3.654 1.328z"/>
-                        </svg>
-                        <span class="status-text">None</span>
+                    <div class="mb-3">
+                        <label for="micSelect" class="form-label">Microphone</label>
+                        <select id="micSelect" class="form-select" data-kind-label="Microphone" data-persist disabled></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="camSelect" class="form-label">Camera</label>
+                        <select id="camSelect" class="form-select" data-kind-label="Camera" data-persist disabled></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="speakerSelect" class="form-label">Speaker</label>
+                        <select id="speakerSelect" class="form-select" data-kind-label="Speaker" data-persist disabled></select>
+                        <div class="form-text" id="speakerNote" hidden>This browser cannot switch the output device (no <code>setSinkId</code>).</div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshDevices">Refresh list</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="applyDevices" disabled>Apply to live call</button>
+                    </div>
+                    <div class="form-text mt-2">Lists fill after connecting. The selection is used for the next call and can be applied to a live call.</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Options</h2>
+                    <div class="mb-3">
+                        <label for="iceMode" class="form-label">ICE servers</label>
+                        <select id="iceMode" class="form-select" data-persist>
+                            <option value="platform">Platform default (sent by SignalWire on connect)</option>
+                            <option value="none">None (host candidates only)</option>
+                            <option value="custom">Custom list</option>
+                        </select>
+                        <div class="form-text">Applied per call through the <code>iceServers</code> option of <code>newCall</code>.</div>
+                    </div>
+                    <div class="mb-3" id="iceCustomWrap" hidden>
+                        <label for="iceCustom" class="form-label">Custom ICE URLs</label>
+                        <input type="text" class="form-control" id="iceCustom" name="iceCustom" placeholder="stun:stun.example.com:3478, turn:turn.example.com:3478" data-persist>
+                    </div>
+                    <div class="mb-3">
+                        <label for="audioCodecs" class="form-label">Audio codecs</label>
+                        <select id="audioCodecs" class="form-select" multiple size="5"></select>
+                        <div class="form-text">All selected = browser default. Deselect to restrict the offer (page-level patch, not an SDK option).</div>
+                    </div>
+                    <div class="mb-0">
+                        <label for="videoCodecs" class="form-label">Video codecs</label>
+                        <select id="videoCodecs" class="form-select" multiple size="4"></select>
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="col-12 col-lg-8">
             <div class="card mb-4">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0 fw-semibold">Video Stream</h5>
-                    </div>
-                    <div class="row g-3">
+                    <h2 class="card-title">Call</h2>
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <div class="position-relative">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h6 class="text-muted mb-0">Local Video</h6>
-                                </div>
-                                <video id="localVideo" autoplay="autoplay" class="w-100 video-container" muted></video>
-                            </div>
+                            <div class="video-label">Local</div>
+                            <video id="localVideo" class="video-frame" autoplay playsinline muted></video>
                         </div>
                         <div class="col-md-6">
-                            <div class="position-relative">
-                                <div class="d-flex align-items-center mb-2">
-                                    <h6 class="text-muted mb-0">Remote Video</h6>
-                                </div>
-                                <video id="remoteVideo" autoplay="autoplay" class="w-100 video-container" playsinline></video>
-                            </div>
+                            <div class="video-label">Remote</div>
+                            <video id="remoteVideo" class="video-frame" autoplay playsinline></video>
+                        </div>
+                    </div>
+
+                    <div id="incoming" class="sw-callout sw-incoming" data-intent="warning" hidden role="alert">
+                        <div id="incomingTitle" class="mb-1">Incoming call</div>
+                        <div class="sw-incoming-who"><span id="incomingName">Unknown caller</span> <span id="incomingNumber" class="sw-code"></span></div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn btn-primary" id="btnAnswer">Answer</button>
+                            <button type="button" class="btn btn-danger" id="btnDecline">Decline</button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="number" class="form-label">Call to</label>
+                            <input type="text" class="form-control" id="number" name="number" placeholder="Resource name or phone number" autocomplete="off" data-persist required>
+                            <div class="invalid-feedback" id="numberError"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="numberFrom" class="form-label">Caller number (optional)</label>
+                            <input type="text" class="form-control" id="numberFrom" name="numberFrom" placeholder="A number owned by the project" autocomplete="off" data-persist>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-4 flex-wrap mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="audio" checked data-persist>
+                            <label class="form-check-label" for="audio">Audio</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="video" checked data-persist>
+                            <label class="form-check-label" for="video">Video</label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="button" class="btn btn-primary flex-fill" id="startCall" disabled>Start call</button>
+                        <button type="button" class="btn btn-danger flex-fill" id="hangupCall" hidden>End call</button>
+                    </div>
+
+                    <div class="mt-4">
+                        <span id="callStatus" class="sw-status" data-state="idle" role="status" aria-live="polite">No call</span>
+                        <dl id="callDetail" class="sw-kv mt-2"></dl>
+                    </div>
+
+                    <div id="controls" class="mt-3" hidden>
+                        <h3 class="card-title">Controls</h3>
+                        <div class="sw-controls">
+                            <button type="button" class="btn btn-outline-primary" id="btnMute" aria-pressed="false">Mute</button>
+                            <button type="button" class="btn btn-outline-primary" id="btnDeaf" aria-pressed="false">Deaf</button>
+                            <button type="button" class="btn btn-outline-primary" id="btnHold" aria-pressed="false">Hold</button>
+                            <button type="button" class="btn btn-outline-primary" id="btnCamera" aria-pressed="false">Camera off</button>
+                        </div>
+                    </div>
+
+                    <div id="dtmfKeys" class="mt-4" hidden>
+                        <h3 class="card-title">DTMF keypad</h3>
+                        <div class="dtmf-grid" role="group" aria-label="DTMF keypad">
+                            <% ['1','2','3','A','4','5','6','B','7','8','9','C','*','0','#','D'].forEach(function (key) { %>
+                            <button type="button" class="btn btn-outline-primary dtmf-key" data-dtmf="<%= key %>"><%= key %></button>
+                            <% }); %>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="card mb-4">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <h5 class="mb-0 fw-semibold">Call Details</h5>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="number" class="form-label fw-medium">Call To <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="number" placeholder="Resource or phone number" required>
-                            <div class="invalid-feedback" id="numberError"></div>
-                            <small class="text-muted">Enter the destination number or resource name</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="numberFrom" class="form-label fw-medium">Call From</label>
-                            <input type="text" class="form-control form-control-lg" id="numberFrom" placeholder="Your caller ID (optional)">
-                            <div class="invalid-feedback" id="numberFromError"></div>
-                            <small class="text-muted">Optional: Set your caller ID</small>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <h2 class="card-title mb-0">Event log</h2>
+                        <div class="d-flex gap-2 align-items-center flex-wrap">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="debugToggle" data-persist>
+                                <label class="form-check-label" for="debugToggle">Log socket messages</label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="copySummary">Copy call summary</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearLog">Clear</button>
                         </div>
                     </div>
-                    <input type="hidden" id="jwt_refresh" name="jwt_refresh" value="">
-                    
-                    <div class="mt-4">
-                        <h6 class="fw-semibold mb-3">Call Options</h6>
-                        <div class="row g-3">
-                            <div class="col-sm-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="audio" value="1" checked>
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
-                                        <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
-                                    </svg>
-                                    <label class="form-check-label fw-medium" for="audio">
-                                        Audio
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="video" value="1" checked>
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M0 4a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 3.32v9.36a1 1 0 0 1-1.406.963l-3.111-1.382A2 2 0 0 1 9.5 14H2a2 2 0 0 1-2-2V4zm11.5 5.175 3.5 1.556V5.269l-3.5 1.556v2.35zM2 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2z"/>
-                                    </svg>
-                                    <label class="form-check-label fw-medium" for="video">
-                                        Video
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-sm-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="stun" value="1" checked>
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM2.04 4.326c.325 1.329 2.532 2.54 3.717 3.19.48.263.793.434.743.484-.08.08-.162.158-.242.234-.416.396-.787.749-.758 1.266.035.634.618.824 1.214 1.017.577.188 1.168.38 1.286.983.082.417-.075.988-.22 1.52-.215.782-.406 1.48.22 1.48 1.5-.5 3.798-3.186 4-5 .138-1.243-2-2-3.5-2.5-.478-.16-.755.081-.99.284-.172.15-.322.279-.51.216-.445-.148-2.5-2-1.5-2.5.78-.39.952-.171 1.227.182.078.1.155.199.248.199.23 0 .694-.417.694-.417.441-.268.626-.648.626-1.053 0-.727-.395-1.257-.395-1.257s1.055-.84 1.055-1.486-.47-.851-.47-.851-.319-.487-.319-.487C8.117-.182 7.074-.089 6.331-.089c-.294 0-.308.027-.308.027S4.717.027 4.717.027c-.137.274-.235.621-.235.621s-.544.353-.544.624c0 .271.235.513.235.513s-.206.513-.206.513-.206.624-.206.624.206.513.206.513-.206.624-.206.624.206.513.206.513z"/>
-                                    </svg>
-                                    <label class="form-check-label fw-medium" for="stun">
-                                        STUN/TURN
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-3 mt-4">
-                        <button id="startCall" class="btn btn-success btn-lg flex-fill" disabled>
-                            Start Call
-                        </button>
-                        <button id="hangupCall" class="btn btn-danger btn-lg flex-fill d-none" disabled>
-                            End Call
-                        </button>
-                    </div>
+                    <ul id="eventLog" class="sw-log" aria-live="off" aria-label="Event log"></ul>
                 </div>
             </div>
-            <div class="form-group" id="dtmfKeys">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-secondary bg-opacity-10 rounded-circle p-2 me-3">
-                                <svg width="20" height="20" fill="currentColor" class="text-secondary">
-                                    <path d="M12.17 9.53c2.307-2.592 3.278-4.684 3.641-6.218.21-.887.214-1.58.16-2.065a3.578 3.578 0 0 0-.108-.563 2.22 2.22 0 0 0-.078-.23V.453c0-.223-.112-.444-.6-.444-.294 0-.528.06-.739.152a3.44 3.44 0 0 0-.785.613 7.083 7.083 0 0 0-.717.7C12.6 2.33 11.2 3.793 8.05 3.61c-.329-.019-.595-.125-.934-.319-.42-.24-.88-.634-1.399-.82-.24-.086-.492-.146-.692-.127-.355.034-.469.18-.469.5 0 .316.104.658.319 1.01.215.352.515.703.797.941.583.494 1.007.746 1.347.746.14 0 .28-.034.418-.102a2.786 2.786 0 0 1 .49-.168c.51-.121.21-.69.21-.69s-.5.69-1.177.69c-.677 0-1.177-.69-1.177-.69s.3.569-.21.69z"/>
-                                </svg>
-                            </div>
-                            <h5 class="mb-0 fw-semibold">DTMF Keypad</h5>
-                        </div>
-                        <div class="dtmf-grid">
-                    <button class="btn btn-primary dtmf-key" data-dtmf="1">1</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="2">2</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="3">3</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="4">4</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="5">5</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="6">6</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="7">7</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="8">8</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="9">9</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="*">*</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="0">0</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="#">#</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="A">A</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="B">B</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="C">C</button>
-                    <button class="btn btn-primary dtmf-key" data-dtmf="D">D</button>
-                </div>
-                        <div class="mt-4">
-                            <h6 class="fw-semibold mb-3">Call Controls</h6>
-                            <div class="d-flex gap-2 flex-wrap mb-3">
-                                <button id="mute_audio_btn" class="btn btn-outline-danger btn-sm flex-fill">
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M13 8c0 2.76-2.24 5-5 5s-5-2.24-5-5V6c0-2.76 2.24-5 5-5s5 2.24 5 5v2zm-1 0V6c0-2.21-1.79-4-4-4S4 3.79 4 6v2c0 2.21 1.79 4 4 4s4-1.79 4-4z"/>
-                                        <path d="M15 8a.5.5 0 0 0-1 0v1a4 4 0 0 1-8 0V8a.5.5 0 0 0-1 0v1a5 5 0 0 0 4.5 4.975V15h-3a.5.5 0 0 0 0 1h7a.5.5 0 0 0 0-1h-3v-1.025A5 5 0 0 0 15 9V8z"/>
-                                        <path d="m10.8 8.613 4.78-4.78a.5.5 0 0 1 .708.708L11.427 9.4a.5.5 0 0 1-.708-.708z"/>
-                                    </svg>
-                                    Mute Audio
-                                </button>
-                                <button id="unmute_audio_btn" class="btn btn-outline-success btn-sm flex-fill d-none">
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M3.5 6.5A.5.5 0 0 1 4 7v1a4 4 0 0 0 8 0V7a.5.5 0 0 1 1 0v1a5 5 0 0 1-4.5 4.975V15h3a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1h3v-2.025A5 5 0 0 1 3 8V7a.5.5 0 0 1 .5-.5z"/>
-                                        <path d="M10 8a2 2 0 1 1-4 0V3a2 2 0 1 1 4 0v5zM8 0a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V3a3 3 0 0 0-3-3z"/>
-                                    </svg>
-                                    Unmute Audio
-                                </button>
-                            </div>
-                            <div class="d-flex gap-2 flex-wrap mb-3">
-                                <button id="mute_video_btn" class="btn btn-outline-warning btn-sm flex-fill">
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L14 13.292a.5.5 0 0 1-.708.708l-1.548-1.548A1.99 1.99 0 0 1 10.5 13H2a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h.765l.853.854zM1 5v6a1 1 0 0 0 1 1h7.5a.99.99 0 0 0 .447-.106L1 5z"/>
-                                        <path d="M9.915 11.915 16 6.5a1 1 0 0 0-1.577-.817L9.5 9.147V4a1 1 0 0 0-1-1H4.854L9.915 11.915z"/>
-                                    </svg>
-                                    Disable Video
-                                </button>
-                                <button id="unmute_video_btn" class="btn btn-outline-success btn-sm flex-fill d-none">
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M0 4a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 3.32v9.36a1 1 0 0 1-1.406.963l-3.111-1.382A2 2 0 0 1 9.5 14H2a2 2 0 0 1-2-2V4zm11.5 5.175 3.5 1.556V5.269l-3.5 1.556v2.35zM2 3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2z"/>
-                                    </svg>
-                                    Enable Video
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <h6 class="fw-semibold mb-3">Audio Device</h6>
-                            <div class="input-group">
-                                <select id="deviceSelect" class="form-select"></select>
-                                <button id="setDeviceBtn" class="btn btn-outline-primary" type="button">
-                                    <svg width="16" height="16" fill="currentColor" class="me-1">
-                                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
-                                    </svg>
-                                    Apply
-                                </button>
-                            </div>
-                        </div>
-            </div>
-        </div>
-    </div>
-    <div class="row pt-4 pb-5">
-        <div class="col-12">
-            <div class="card border-info">
+
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
-                            <svg width="20" height="20" fill="currentColor" class="text-info">
-                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
-                            </svg>
-                        </div>
-                        <h5 class="mb-0 fw-semibold text-info">Troubleshooting</h5>
-                    </div>
-                    <div class="alert alert-light border-0 mb-0">
-                        <p class="mb-2"><strong>Common Issues:</strong></p>
-                        <ul class="mb-0">
-                            <li>If you see <code>localStorage</code> errors, try enabling third Party Cookies in your browser</li>
-                            <li>For microphone/camera access, make sure to allow permissions when prompted</li>
-                            <li>If calls fail to connect, verify your SignalWire project credentials</li>
-                            <li>For best results, use Chrome, Firefox, or Safari with WebRTC support</li>
-                        </ul>
-                    </div>
+                    <h2 class="card-title">Troubleshooting</h2>
+                    <ul class="mb-0 small">
+                        <li>"Permission missing" in Devices: allow the microphone and camera for this site, then click <em>Check permissions</em>.</li>
+                        <li>Token request fails with a SignalWire status: the server's <code>SIGNALWIRE_API</code>, <code>SIGNALWIRE_PROJECT</code> or <code>SIGNALWIRE_SPACE</code> is wrong.</li>
+                        <li>Status flips to "Reconnecting…": the socket dropped and the SDK is retrying. Watch the event log; a JWT expiry ends the session instead.</li>
+                        <li>Codec or ICE experiments: change them before starting the call; they apply when the offer is created.</li>
+                        <li>Use <em>Copy call summary</em> to paste the call ID, states, cause and recent events into a support ticket.</li>
+                    </ul>
                 </div>
             </div>
-        </div>
-    </div>
         </div>
     </div>
 </div>
-</body>
-<script type="text/javascript">
-    // Application state
-    const AppState = {
-        client: null,
-        currentCall: null,
-        settings: {
-            project: localStorage.getItem('relay.example.project') || '',
-            token: localStorage.getItem('relay.example.token') || '',
-            number: localStorage.getItem('relay.example.number') || '',
-            numberFrom: localStorage.getItem('relay.example.numberFrom') || '',
-            audio: localStorage.getItem('relay.example.audio') || '1',
-            video: localStorage.getItem('relay.example.video') || '1',
-            stun: localStorage.getItem('relay.example.stun') || '1',
-            host: localStorage.getItem('relay.example.host') || '0'
-        }
-    };
 
-    // DOM references
-    const Elements = {
-        btnConnect: null,
-        btnDisconnect: null,
-        startCall: null,
-        hangupCall: null,
-        connectStatus: null,
-        callStatus: null,
-        dtmfKeys: null,
-        // Initialize DOM references after page load
-        init() {
-            this.btnConnect = document.getElementById('btnConnect');
-            this.btnDisconnect = document.getElementById('btnDisconnect');
-            this.startCall = document.getElementById('startCall');
-            this.hangupCall = document.getElementById('hangupCall');
-            this.connectStatus = document.getElementById('connectStatus');
-            this.callStatus = document.getElementById('callStatus');
-            this.dtmfKeys = document.getElementById('dtmfKeys');
-        }
-    };
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
 
-    ready(function() {
-        Elements.init();
-        initializeApp();
-    });
-
-    function initializeApp() {
-        listAvailableCodecs();
-        patchRTCPeerCodecs();
-        setupEventListeners();
-        loadUserSettings();
-    }
-
-    function getWantedCodecs() {
-        const el = document.getElementById('codecs')
-        const codecs = Array.from(el.selectedOptions).map(({ value }) => value)
-        return {
-            audio: codecs,
-            video: ['video/VP8'],
-        }
-    }
-
-    function listAvailableCodecs() {
-        const { codecs: availSend } = RTCRtpSender.getCapabilities('audio');
-        console.log('Codecs', availSend);
-        availSend.forEach(row => {
-            const option = document.createElement('option');
-            option.value = row.mimeType;
-            option.text = row.mimeType;
-            option.selected = true;
-            document.getElementById('codecs').appendChild(option);
-        });
-    }
-
-    function patchRTCPeerCodecs() {
-
-        const mediaTypes = ['audio', 'video']
-
-        const _createOffer = RTCPeerConnection.prototype.createOffer;
-        const _createAnswer = RTCPeerConnection.prototype.createAnswer;
-
-        function patch() {
-            const wantedCodecs = getWantedCodecs()
-
-            mediaTypes.forEach(media => {
-                const transceiver = this.getTransceivers().find(t => {
-                    if (t.sender.track) {
-                        return t.sender.track.kind === media
-                    } else {
-                        return false
-                    }
-
-                })
-                if (transceiver) {
-                    const { codecs: availSend } = RTCRtpSender.getCapabilities(media);
-                    const { codecs: availRecv } = RTCRtpReceiver.getCapabilities(media);
-                    const newCodecs = []
-                    availSend.forEach(row => {
-                        if (wantedCodecs[media].includes(row.mimeType)) {
-                            newCodecs.push(row)
-                        }
-                    })
-                    availRecv.forEach(row => {
-                        if (wantedCodecs[media].includes(row.mimeType)) {
-                            newCodecs.push(row)
-                        }
-                    })
-                    console.log('availSend', availSend)
-                    console.log('availRecv', availRecv)
-                    console.log('Applying the following codec(s)', JSON.stringify(newCodecs), 'for', media)
-                    transceiver.setCodecPreferences(newCodecs)
-                } else {
-                    console.warn('No transceiver found for ', media)
-                }
-            })
-        }
-
-
-        RTCPeerConnection.prototype.createOffer = function(options) {
-            try {
-                console.log('This offer', this)
-                patch.apply(this)
-            } catch (error) {
-                console.error('Error patching offer', error)
-            }
-
-            return _createOffer.apply(this, options);
-        }
-
-        RTCPeerConnection.prototype.createAnswer = function(options) {
-            try {
-                patch.apply(this)
-            } catch (error) {
-                console.error('Error patching answer', error)
-            }
-
-            return _createAnswer.apply(this, options);
-        };
-    }
-
-    function setupEventListeners() {
-        // Event listeners for form inputs with validation
-        const inputFields = document.querySelectorAll('.card-body .form-control');
-        inputFields.forEach(inputField => {
-            inputField.addEventListener('change', saveInLocalStorage);
-            inputField.addEventListener('input', function() {
-                // Real-time validation feedback
-                if (this.id === 'number' || this.id === 'numberFrom') {
-                    this.classList.remove('is-invalid', 'is-valid');
-                }
-            });
-        });
-
-        // Event listeners for checkboxes
-        const checkboxes = document.querySelectorAll('.form-check input');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', saveInLocalStorage);
-        });
-
-        // DTMF key event listeners
-        document.querySelectorAll('.dtmf-key').forEach(button => {
-            button.addEventListener('click', handleDtmfClick);
-        });
-
-        // Button event listeners
-        Elements.startCall?.addEventListener('click', makeCall);
-        Elements.hangupCall?.addEventListener('click', hangup);
-        Elements.btnDisconnect?.addEventListener('click', disconnect);
-        document.getElementById('setDeviceBtn')?.addEventListener('click', setDevice);
-        
-        // Mute button listeners
-        document.getElementById('mute_audio_btn')?.addEventListener('click', () => toggleMute('audio', true));
-        document.getElementById('unmute_audio_btn')?.addEventListener('click', () => toggleMute('audio', false));
-        document.getElementById('mute_video_btn')?.addEventListener('click', () => toggleMute('video', true));
-        document.getElementById('unmute_video_btn')?.addEventListener('click', () => toggleMute('video', false));
-        
-        // STUN change listener
-        document.getElementById('stun')?.addEventListener('change', stunSwap);
-    }
-
-    function loadUserSettings() {
-        document.getElementById('project').value = AppState.settings.project;
-        document.getElementById('token').value = AppState.settings.token;
-        document.getElementById('number').value = AppState.settings.number;
-        document.getElementById('numberFrom').value = AppState.settings.numberFrom;
-        document.getElementById('audio').checked = AppState.settings.audio === '1';
-        document.getElementById('video').checked = AppState.settings.video === '1';
-        document.getElementById('stun').checked = AppState.settings.stun === '1';
-    }
-
-
-
-    const getCircularReplacer = () => {
-        const seen = new WeakSet();
-        return (key, value) => {
-            if (typeof value === "object" && value !== null) {
-                if (seen.has(value)) {
-                    return;
-                }
-                seen.add(value);
-            }
-            return value;
-        };
-    };
-
-    // Simplified DTMF handler using data attributes
-    function handleDtmfClick(event) {
-        if (!AppState.currentCall) return;
-        const dtmfValue = event.target.dataset.dtmf;
-        if (dtmfValue) {
-            AppState.currentCall.dtmf(dtmfValue);
-            console.log('DTMF sent:', dtmfValue);
-        }
-    }
-
-    // Unified mute/unmute function
-    function toggleMute(type, shouldMute) {
-        if (!AppState.currentCall) return;
-        
-        const muteBtn = document.getElementById(`mute_${type}_btn`);
-        const unmuteBtn = document.getElementById(`unmute_${type}_btn`);
-        
-        if (shouldMute) {
-            if (type === 'audio') AppState.currentCall.muteAudio();
-            else AppState.currentCall.muteVideo();
-            muteBtn.classList.add('d-none');
-            unmuteBtn.classList.remove('d-none');
-        } else {
-            if (type === 'audio') AppState.currentCall.unmuteAudio();
-            else AppState.currentCall.unmuteVideo();
-            muteBtn.classList.remove('d-none');
-            unmuteBtn.classList.add('d-none');
-        }
-    }
-
-    async function setDevice() {
-        try {
-            const deviceId = document.getElementById('deviceSelect').value;
-            if (deviceId && AppState.currentCall) {
-                await AppState.currentCall.setAudioInDevice(deviceId);
-            }
-        } catch (error) {
-            console.error('Error setting device:', error);
-        }
-    }
-
-    // Renamed for consistency
-    async function stunSwap() {
-        disconnect();
-        await new Promise(r => setTimeout(r, 750));
-        connect();
-    }
-
-    /**
-     * Connect with Relay creating a client and attaching all the event handler.
-     */
-    function connect() {
-        AppState.client = new Relay({
-            project: document.getElementById('project').value,
-            token: document.getElementById('token').value
-        });
-
-        async function populateDevices() {
-            try {
-                const devices = await AppState.client.getDevices();
-                const select = document.getElementById('deviceSelect');
-                select.innerHTML = devices
-                    .filter(d => d.kind === 'audioinput')
-                    .map(d => `<option value="${d.deviceId}">${d.label || d.deviceId}</option>`)
-                    .join('');
-            } catch (error) {
-                console.error('Error populating devices:', error);
-            }
-        }
-
-        populateDevices();
-
-        AppState.client.remoteElement = 'remoteVideo';
-        AppState.client.localElement = 'localVideo';
-        if (document.getElementById('stun').checked) {
-            AppState.client.iceServers = [{
-                iceTransportPolicy: 'relay',
-                urls: ['stun:stun.signalwire.com'] }];
-            console.log("STUN is enabled");
-        } else {
-            AppState.client.iceServers = false;
-            console.log("STUN is disabled");
-        }
-        
-        if (document.getElementById('audio').checked) {
-            AppState.client.enableMicrophone();
-        } else {
-            AppState.client.disableMicrophone();
-        }
-        
-        if (document.getElementById('video').checked) {
-            AppState.client.enableWebcam();
-        } else {
-            AppState.client.disableWebcam();
-        }
-
-        AppState.client.on('signalwire.ready', function() {
-            Elements.btnConnect.classList.add('d-none');
-            Elements.btnConnect.disabled = true;
-            Elements.btnDisconnect.classList.remove('d-none');
-            Elements.btnDisconnect.disabled = false;
-            updateConnectionStatus('connected', 'Connected');
-            Elements.startCall.disabled = false;
-        });
-
-        // Update UI on socket close
-        AppState.client.on('signalwire.socket.close', function() {
-            Elements.btnConnect.classList.remove('d-none');
-            Elements.btnConnect.disabled = false;
-            Elements.btnDisconnect.classList.add('d-none');
-            Elements.btnDisconnect.disabled = true;
-            updateConnectionStatus('disconnected', 'Disconnected');
-        });
-
-        // Log socket events
-        AppState.client.on("signalwire.error", (error) => {
-            console.log(error);
-        });
-        AppState.client.on("signalwire.socket.open", (error) => {
-            console.log(error);
-        });
-        AppState.client.on("signalwire.socket.error", (error) => {
-            console.log(error);
-        });
-        AppState.client.on("signalwire.socket.close", (error) => {
-            console.log(error);
-        });
-        AppState.client.__logger.setLevel(AppState.client.__logger.levels.DEBUG);
-        AppState.client.on('signalwire.notification', handleNotification);
-
-        updateConnectionStatus('connecting', 'Connecting...');
-        AppState.client.connect();
-    }
-
-    function disconnect() {
-        updateConnectionStatus('connecting', 'Disconnecting...');
-        if (AppState.client) {
-            AppState.client.disconnect();
-        }
-    }
-    
-    function updateConnectionStatus(status, text) {
-        const statusElement = Elements.connectStatus;
-        if (!statusElement) return;
-        
-        // Remove existing status classes
-        statusElement.className = 'status-indicator';
-        
-        // Add appropriate status class
-        switch(status) {
-            case 'connected':
-                statusElement.classList.add('status-connected');
-                const iconElement = statusElement.querySelector('.status-icon');
-                if (iconElement) {
-                    iconElement.innerHTML = '●';
-                    iconElement.style.color = '#28a745';
-                }
-                break;
-            case 'connecting':
-                statusElement.classList.add('status-connecting');
-                const connectingIcon = statusElement.querySelector('.status-icon');
-                if (connectingIcon) {
-                    connectingIcon.innerHTML = '●';
-                    connectingIcon.style.color = '#ffc107';
-                }
-                break;
-            case 'disconnected':
-            default:
-                statusElement.classList.add('status-disconnected');
-                const disconnectedIcon = statusElement.querySelector('.status-icon');
-                if (disconnectedIcon) {
-                    disconnectedIcon.innerHTML = '●';
-                    disconnectedIcon.style.color = '#dc3545';
-                }
-                break;
-        }
-        
-        statusElement.querySelector('.status-text').textContent = text;
-    }
-
-    /**
-     * Handle notification from the client.
-     */
-    function handleNotification(notification) {
-        console.log("notification", notification.type, notification);
-        switch (notification.type) {
-            case 'callUpdate':
-                handleCallUpdate(notification.call);
-                break;
-            case 'userMediaError':
-                // Permission denied or invalid audio/video params on `getUserMedia`
-                break;
-            case 'refreshToken':
-                // Check if the checkbox is checked
-                if (!document.getElementById('token_switch').checked) {
-                    console.log("Refresh")
-                    // Take a new token from your server...
-                    refresh_token()
-                        .then(async (jwt_token) => {
-                            await AppState.client.refreshToken(jwt_token).catch(console.error);
-                        })
-                        .catch(error => {
-                            console.error('Failed to refresh token:', error);
-                        });
-                }
-                break;
-        }
-    }
-
-    /**
-     * Update the UI when the call's state change
-     */
-    function handleCallUpdate(call) {
-        AppState.currentCall = call;
-        let callState = JSON.parse(JSON.stringify(call,getCircularReplacer()));
-        console.log(AppState.currentCall.state, AppState.currentCall.cause, AppState.currentCall.causeCode);
-        console.log("Call State: ", callState);
-        let msg = AppState.currentCall.causeCode ? `Code:${AppState.currentCall.causeCode} Reason: ${AppState.currentCall.cause}` : `Early Media:${AppState.currentCall.gotEarly} Answered: ${AppState.currentCall.gotAnswer}`;
-        Elements.callStatus.innerHTML = `${AppState.currentCall.prevState} -> ${AppState.currentCall.state} </br> ${msg}`;
-
-        switch (call.state) {
-            case 'new': // Set up the UI
-                break;
-            case 'trying': // Call is being placed and about to ring.
-                Elements.startCall.classList.add('d-none');
-                Elements.hangupCall.classList.remove('d-none');
-                Elements.hangupCall.disabled = false;
-                break;
-            case 'recovering': // Call is recovering from a previous session
-                if (confirm('Recover the previous call?')) {
-                    AppState.currentCall.answer();
-                    console.log(AppState.currentCall.id);
-                } else {
-                    AppState.currentCall.hangup();
-                }
-                break;
-            case 'ringing': // Someone is calling you
-                if (confirm('Pick up the call?')) {
-                    AppState.currentCall.answer();
-                } else {
-                    AppState.currentCall.hangup();
-                }
-                break;
-            case 'active': // Call has become active
-                Elements.startCall.classList.add('d-none');
-                Elements.hangupCall.classList.remove('d-none');
-                Elements.hangupCall.disabled = false;
-                Elements.dtmfKeys.hidden = false;
-                break;
-            case 'hangup': // Call is over
-                Elements.startCall.classList.remove('d-none');
-                Elements.hangupCall.classList.add('d-none');
-                Elements.hangupCall.disabled = true;
-                Elements.dtmfKeys.hidden = true;
-                break;
-            case 'destroy': // Call has been destroyed
-                AppState.currentCall = null;
-                break;
-        }
-    }
-
-    // Form validation function
-    function validateForm() {
-        let isValid = true;
-        const numberInput = document.getElementById('number');
-        const numberError = document.getElementById('numberError');
-        const numberFromInput = document.getElementById('numberFrom');
-        const numberFromError = document.getElementById('numberFromError');
-        
-        // Reset previous validation states
-        numberInput.classList.remove('is-invalid', 'is-valid');
-        numberFromInput.classList.remove('is-invalid', 'is-valid');
-        
-        // Validate destination number (required)
-        const numberValue = numberInput.value.trim();
-        if (!numberValue) {
-            numberInput.classList.add('is-invalid');
-            numberError.textContent = 'Please enter a destination number or resource name';
-            isValid = false;
-        } else if (numberValue.length < 2) {
-            numberInput.classList.add('is-invalid');
-            numberError.textContent = 'Number must be at least 2 characters long';
-            isValid = false;
-        } else {
-            numberInput.classList.add('is-valid');
-            numberError.textContent = '';
-        }
-        
-        // Validate caller ID (optional but must be valid if provided)
-        const numberFromValue = numberFromInput.value.trim();
-        if (numberFromValue && numberFromValue.length > 0) {
-            if (numberFromValue.length < 2) {
-                numberFromInput.classList.add('is-invalid');
-                numberFromError.textContent = 'Caller ID must be at least 2 characters long';
-                isValid = false;
-            } else {
-                numberFromInput.classList.add('is-valid');
-                numberFromError.textContent = '';
-            }
-        } else {
-            numberFromError.textContent = '';
-        }
-        
-        return isValid;
-    }
-    
-    // Show toast notifications
-    function showNotification(message, type = 'info') {
-        let toastContainer = document.getElementById('toastContainer');
-        if (!toastContainer) {
-            // Create toast container if it doesn't exist
-            const container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.className = 'toast-container position-fixed top-0 end-0 p-3';
-            container.style.zIndex = '9999';
-            document.body.appendChild(container);
-            toastContainer = container;
-        }
-        
-        const toastId = 'toast-' + Date.now();
-        const toastHTML = `
-            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <div class="rounded me-2 bg-${type}" style="width: 12px; height: 12px;"></div>
-                    <strong class="me-auto">SignalWire</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    ${message}
-                </div>
-            </div>
-        `;
-        
-        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-        const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-        
-        // Remove toast element after it's hidden
-        toastElement.addEventListener('hidden.bs.toast', () => {
-            toastElement.remove();
-        });
-    }
-
-    /**
-     * Make a new outbound call
-     */
-    function makeCall() {
-        if (!AppState.client) {
-            showNotification('Please connect to SignalWire first', 'warning');
-            return;
-        }
-        
-        // Validate required fields with visual feedback
-        if (!validateForm()) {
-            showNotification('Please fix the form errors before calling', 'danger');
-            return;
-        }
-        
-        const params = {
-            destinationNumber: document.getElementById('number').value.trim(),
-            callerNumber: document.getElementById('numberFrom').value.trim(),
-            audio: document.getElementById('audio').checked,
-            video: document.getElementById('video').checked ? { aspectRatio: 16/9 } : false,
-        };
-        
-        showNotification('Initiating call...', 'info');
-        dtmf_viewer();
-        AppState.currentCall = AppState.client.newCall(params);
-    }
-
-
-    /**
-     * Hangup the currentCall if present
-     */
-    function hangup() {
-        if (AppState.currentCall) {
-            AppState.currentCall.hangup();
-        }
-    }
-
-    function saveInLocalStorage(e) {
-        let key = e.target.name || e.target.id
-        localStorage.setItem('relay.example.' + key, e.target.value);
-    }
-    function ready(callback) {
-        if (document.readyState !== 'loading') {
-            callback();
-        } else if (document.addEventListener) {
-            document.addEventListener('DOMContentLoaded', callback);
-        } else {
-            document.attachEvent('onreadystatechange', function() {
-                if (document.readyState !== 'loading') {
-                    callback();
-                }
-            });
-        }
-    }
-</script>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script id="app-config" type="application/json"><%- JSON.stringify(config).replace(/</g, '\\u003c') %></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script>
-    // Handles the token refreshing.
-    function refresh_token() {
-        return new Promise((resolve, reject) => {
-            $.ajax({
-                url: "/jwt_refresh",
-                method: "PUT",
-                contentType: "application/json",
-                data: JSON.stringify({
-                    refresh_token: document.getElementById('jwt_refresh').value,
-                    duration: document.getElementById("jwt_duration-box").value
-                }),
-                success: function(data) {
-                    $('#token').val(data.jwt_token);
-                    $('#jwt_refresh').val(data.refresh_token);
-                    showNotification('JWT token refreshed successfully', 'success');
-                    resolve(data.jwt_token);
-                },
-                error: function(xhr, status, error) {
-                    reject(error);
-                }
-            });
-        });
-    }
-
-    // Handles switching STUN on/off.
-    async function stun_swap() {
-        disconnect()
-        await new Promise(r => setTimeout(r, 750));
-        connect()
-    }
-    // Handles DTMF. Turns on when a call is made and off when not.
-    async function dtmf_viewer() {
-        await new Promise(r => setTimeout(r, 750));
-        if (AppState.currentCall && Elements.dtmfKeys) {
-            Elements.dtmfKeys.style.display = "block";
-        }
-    }
-    // Connects the client once a verto resource name is submitted.
-    $(document).ready(function(){
-        $("#verto_resource").on('submit', function(event) {
-            event.preventDefault(); // Prevent the form from submitting via the browser
-            let formValues= $(this).serialize();
-
-            $.ajax({
-                url: "/token_handler",
-                method: "POST",
-                data: formValues,
-                success: function(data) {
-                    $('#token').val(data.jwt_token);
-                    $('#jwt_refresh').val(data.refresh_token);
-                    showNotification('JWT token generated successfully', 'success');
-                    // Connect after the request is done.
-                    connect()
-                },
-                error: function(xhr, status, error) {
-                    showNotification('Failed to generate JWT token: ' + error, 'danger');
-                }
-            });
-        });
-    });
-    // Hides the JWT duration box if the user doesn't want to customize it.
-    $(document).ready(function() {
-        $('#jwt_duration_container').hide();
-        $('#verto_duration_switch').change(function() {
-            if ($(this).is(':checked')) {
-                $('#jwt_duration_container').show();
-            } else {
-                $('#jwt_duration_container').hide();
-                $('#jwt_duration-box').val(""); // Reset the value to empty
-            }
-        });
-    });
-</script>
+<script src="/js/codecs.js"></script>
+<script src="/js/app.js"></script>
+</body>
 </html>

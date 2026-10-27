@@ -2,7 +2,7 @@
 
 A small Express app and a single page that exercise the [Browser SDK v2 `Relay` client](https://signalwire.com/docs/browser-sdk/v2/js)
 against your own SignalWire space. It is built as a test harness: generate a JWT, connect, place and
-receive calls, switch devices, try ICE and codec settings, and copy a call summary into a support ticket.
+receive calls, switch devices, try ICE and codec settings.
 
 > **Not for production.** This is an example app for trying out the Browser SDK v2 and its features
 > on your own machine. It is not designed, tested or hardened for production use. Use it to learn
